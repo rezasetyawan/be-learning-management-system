@@ -20,24 +20,21 @@ export class UsersService {
     @Inject(PG_CONNECTION) private db: NodePgDatabase<typeof schema>,
   ) {}
 
-  // async findOne(username: string): Promise<User | undefined> {
-  //   // return this.users.find((user) => user.username === username);
-  // }
-
   async create(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
     try {
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
       const user = {
         id: `user-${nanoid(20)}`,
         ...createUserDto,
-        password: hashedPassword,
+        password: hashedPassword as unknown as string,
       };
 
       await this.db.insert(schema.users).values(user);
     } catch (error) {
-      throw new BadRequestException('Something bad happened', {
+      throw new BadRequestException(error.message, {
         cause: new Error(),
-        description: error.message,
+        description: error.message + 'password: ' + createUserDto.password,
       });
     }
   }
@@ -56,6 +53,16 @@ export class UsersService {
   async findOneWithEmail(email: string) {
     const user = await this.db.query.users.findFirst({
       where: (users, { eq }) => eq(users.email, email),
+    });
+    return user;
+  }
+
+  async getRole(username: string) {
+    const user = await this.db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.username, username),
+      columns: {
+        role: true,
+      },
     });
     return user;
   }

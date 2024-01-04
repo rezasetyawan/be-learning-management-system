@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   username: varchar('username', { length: 50 }).notNull().unique(),
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
+  role: text('role').default('user'),
 });
 
 export const academies = pgTable('academies', {
@@ -76,5 +77,10 @@ export const academyModulesRelations = relations(academyModules, ({ one }) => ({
     references: [academyModuleGroups.id],
   }),
 }));
+
+// export const authentications = pgTable('authentications', {
+//   id: varchar('id', { length: 50 }).primaryKey(),
+//   token: text('token').notNull().unique(),
+// });
 
 export type NewUser = typeof users.$inferInsert;

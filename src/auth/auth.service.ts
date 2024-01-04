@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up-dto';
@@ -29,6 +33,10 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, username: user.username };
+    // const refresh_token = await this.jwtService.signAsync(payload, {
+    //   secret: 'inisangatsecretbangetcoeg',
+    // });
+
     return {
       status: 'success',
       access_token: await this.jwtService.signAsync(payload),
@@ -36,12 +44,20 @@ export class AuthService {
   }
 
   async signUp(signUpDto: SignUpDto) {
-    await this.usersService.create(signUpDto);
-    const user = await this.usersService.findOne(signUpDto.username);
-    const payload = { sub: user.id, username: user.username };
-    return {
-      status: 'success',
-      access_token: await this.jwtService.signAsync(payload),
-    };
+    try {
+      await this.usersService.create(signUpDto);
+      const user = await this.usersService.findOne(signUpDto.username);
+      const payload = { sub: user.id, username: user.username };
+
+      const access_token = await this.jwtService.signAsync(payload);
+
+      return {
+        status: 'success',
+        access_token,
+        // refresh_token,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
