@@ -1,9 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+// import { CreateUserDto } from './dto/create-user.dto';
+// import { UpdateUserDto } from './dto/update-user.dto';
 import { PG_CONNECTION } from '../constants';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../drizzle/schema';
+import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+import { nanoid } from 'nanoid';
+
+export type User = {
+  userId: number;
+  username: string;
+  password: string;
+};
 
 @Injectable()
 export class UsersService {
@@ -11,19 +20,47 @@ export class UsersService {
     @Inject(PG_CONNECTION) private db: NodePgDatabase<typeof schema>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  // async findOne(username: string): Promise<User | undefined> {
+  //   // return this.users.find((user) => user.username === username);
+  // }
+
+  async create(createUserDto: CreateUserDto) {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
+    try {
+      const user = {
+        id: `user-${nanoid(20)}`,
+        ...createUserDto,
+        password: hashedPassword,
+      };
+
+      await this.db.insert(schema.users).values(user);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error.message,
+      });
+    }
   }
 
   async findAll() {
     return 'This action returns a users';
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(username: string) {
+    const user = await this.db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.username, username),
+    });
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  async findOneWithEmail(email: string) {
+    const user = await this.db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.email, email),
+    });
+    return user;
+  }
+
+  update(id: number) {
     return `This action updates a #${id} user`;
   }
 

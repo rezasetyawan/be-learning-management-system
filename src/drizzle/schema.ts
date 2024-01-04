@@ -18,6 +18,8 @@ export const users = pgTable('users', {
   id: varchar('id', { length: 50 }).primaryKey(),
   fullname: text('full_name').notNull(),
   username: varchar('username', { length: 50 }).notNull().unique(),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),
 });
 
 export const academies = pgTable('academies', {

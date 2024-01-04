@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1704341633452,
+      "tag": "0000_serious_quasar",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1704342763732,
+      "tag": "0001_yummy_doctor_spectrum",
+      "breakpoints": true
+    }
+  ]
+}
