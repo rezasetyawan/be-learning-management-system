@@ -5,6 +5,7 @@ import { DrizzleModule } from './drizzle/drizzle.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
