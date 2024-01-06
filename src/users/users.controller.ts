@@ -23,4 +23,11 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin, Role.User)
+  @Get(':username/role')
+  getRole(@Param('username') username: string) {
+    return this.usersService.getRole(username);
+  }
 }

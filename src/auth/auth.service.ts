@@ -60,4 +60,25 @@ export class AuthService {
       throw new BadRequestException(error.message);
     }
   }
+
+  async verifyAccessToken(token: string) {
+    if (!token) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const isTokenValid = await this.jwtService.verifyAsync(token);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const data = this.jwtService.decode(token);
+    return {
+      data: {
+        is_token_valid: true,
+        username: data.username,
+      },
+      status: 'success',
+      message: 'Access Token valid',
+    };
+  }
 }
