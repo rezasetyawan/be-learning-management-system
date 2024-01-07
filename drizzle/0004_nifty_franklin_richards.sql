@@ -1,0 +1,1 @@
+ALTER TABLE "academies" ALTER COLUMN "description" SET DEFAULT ' ';

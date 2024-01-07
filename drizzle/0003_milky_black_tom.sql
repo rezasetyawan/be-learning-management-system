@@ -1,0 +1,1 @@
+ALTER TABLE "academies" ADD COLUMN "description" text NOT NULL;

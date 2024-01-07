@@ -1,0 +1,1 @@
+ALTER TABLE "academies" RENAME COLUMN "is_complete" TO "is_published";

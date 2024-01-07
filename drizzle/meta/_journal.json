@@ -22,6 +22,55 @@
       "when": 1704377627270,
       "tag": "0002_huge_zodiak",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1704519894191,
+      "tag": "0003_milky_black_tom",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1704519925915,
+      "tag": "0004_nifty_franklin_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1704524516040,
+      "tag": "0005_fast_silver_surfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1704534393619,
+      "tag": "0006_bitter_puppet_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1704613231222,
+      "tag": "0007_flat_korath",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1704613452409,
+      "tag": "0008_bright_pete_wisdom",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1704615878289,
+      "tag": "0009_good_wraith",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,195 @@
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateAcademyDto } from './dto/create-academy.dto';
+// import { UpdateAcademyDto } from './dto/update-academy.dto';
+import { PG_CONNECTION } from 'src/constants';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '../drizzle/schema';
+import { SupabaseService } from 'lib/supabase.service';
+import { UpdateModuleDto } from './dto/update-module.dto';
+import { eq } from 'drizzle-orm';
+import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
+import { nanoid } from 'nanoid';
+import { UpdateAcademyDto } from './dto/update-academy.dto';
+import { Express } from 'express';
+import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+
+@Injectable()
+export class AcademiesService {
+  constructor(
+    @Inject(PG_CONNECTION) private db: NodePgDatabase<typeof schema>,
+    private readonly supabaseService: SupabaseService,
+  ) {}
+
+  async create(createAcademyDto: CreateAcademyDto) {
+    const academy = {
+      id: nanoid(20),
+      ...createAcademyDto,
+    };
+    await this.db.insert(schema.academies).values(academy);
+    return {
+      status: 'success',
+      data: {
+        academy_id: academy.id,
+      },
+    };
+  }
+
+  async updateAcademy(
+    academyId: string,
+    updateAcademyDto: UpdateAcademyDto,
+    academyCoverPicture?: Express.Multer.File,
+  ) {
+    if (updateAcademyDto) {
+    }
+    if (academyCoverPicture) {
+      const oldCoverPicture = await this.db
+        .select({ coverImageUrl: schema.academies.coverImageUrl })
+        .from(schema.academies)
+        .where(eq(schema.academies.id, academyId));
+
+      if (oldCoverPicture.length) {
+        await this.supabaseService.deleteFromPublicStorage(
+          SupabaseBucket.ACADEMY_COVER_PICTURES,
+          oldCoverPicture[0].coverImageUrl,
+        );
+      }
+      const fileUrl = await this.supabaseService.uploadToPublicStorage(
+        SupabaseBucket.ACADEMY_COVER_PICTURES,
+        academyCoverPicture,
+        academyId,
+      );
+
+      await this.db
+        .update(schema.academies)
+        .set({ coverImageUrl: fileUrl })
+        .where(eq(schema.academies.id, academyId));
+    }
+
+    return {
+      status: 'success',
+    };
+  }
+
+  async findAll() {
+    const academies = await this.db.query.academies.findMany();
+    return academies;
+  }
+
+  async findOne(id: string) {
+    const data = await this.db.query.academies.findFirst({
+      where: (academies, { eq }) => eq(academies.id, id),
+      with: {
+        moduleGroups: {
+          columns: {
+            createdAt: false,
+            updatedAt: false,
+            academyId: false,
+          },
+          orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
+          with: {
+            modules: {
+              columns: {
+                createdAt: false,
+                updatedAt: false,
+                academyModuleGroupId: false,
+              },
+              orderBy: (modules, { asc }) => [asc(modules.order)],
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      status: 'success',
+      data: data,
+    };
+  }
+
+  async updateModuleGroup(
+    academyId: string,
+    moduleGroupId: string,
+    updateModuleGroupDto: UpdateModuleGroupDto,
+  ) {
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const moduleGroup = await this.db
+      .select({ id: schema.academyModuleGroups.id })
+      .from(schema.academyModuleGroups)
+      .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    if (!moduleGroup) {
+      throw new NotFoundException('Module group not found');
+    }
+
+    await this.db
+      .update(schema.academyModuleGroups)
+      .set(updateModuleGroupDto)
+      .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    return {
+      status: 'success',
+    };
+  }
+
+  async updateModule(
+    academyId: string,
+    moduleGroupId: string,
+    moduleId: string,
+    updateModuleDto: UpdateModuleDto,
+  ) {
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const moduleGroup = await this.db
+      .select({ id: schema.academyModuleGroups.id })
+      .from(schema.academyModuleGroups)
+      .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    if (!moduleGroup) {
+      throw new NotFoundException('Module group not found');
+    }
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module) {
+      throw new NotFoundException('Module not found');
+    }
+
+    await this.db
+      .update(schema.academyModules)
+      .set(updateModuleDto)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    return {
+      status: 'success',
+    };
+  }
+
+  // findOne(id: number) {
+  //   return `This action returns a #${id} academy`;
+  // }
+
+  // update(id: number, updateAcademyDto: UpdateAcademyDto) {
+  //   return `This action updates a #${id} academy`;
+  // }
+
+  // remove(id: number) {
+  //   return `This action removes a #${id} academy`;
+  // }
+}
