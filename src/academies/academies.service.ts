@@ -39,7 +39,13 @@ export class AcademiesService {
     updateAcademyDto: UpdateAcademyDto,
     academyCoverPicture?: Express.Multer.File,
   ) {
-    if (updateAcademyDto) {
+    const { name, updatedAt, description, isPublished } = updateAcademyDto;
+
+    if (name || updatedAt || description || isPublished) {
+      await this.db
+        .update(schema.academies)
+        .set(updateAcademyDto)
+        .where(eq(schema.academies.id, academyId));
     }
     if (academyCoverPicture) {
       const oldCoverPicture = await this.db
