@@ -12,6 +12,8 @@ import { nanoid } from 'nanoid';
 import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { Express } from 'express';
 import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import { CreateModuleGroupDto } from './dto/create-module-group.dto';
+import { CreateModuleDto } from './dto/create-module.dto';
 
 @Injectable()
 export class AcademiesService {
@@ -20,6 +22,7 @@ export class AcademiesService {
     private readonly supabaseService: SupabaseService,
   ) {}
 
+  // ACADEMIES
   async create(createAcademyDto: CreateAcademyDto) {
     const academy = {
       id: nanoid(20),
@@ -112,6 +115,20 @@ export class AcademiesService {
     };
   }
 
+  // MODULE GROUPS
+  async addModuleGroup(createModuleGroupDto: CreateModuleGroupDto) {
+    const moduleGroup = {
+      id: nanoid(20),
+      ...createModuleGroupDto,
+    };
+    await this.db.insert(schema.academyModuleGroups).values(moduleGroup);
+    return {
+      status: 'success',
+      data: {
+        moduleGroupId: moduleGroup.id,
+      },
+    };
+  }
   async updateModuleGroup(
     academyId: string,
     moduleGroupId: string,
@@ -142,6 +159,26 @@ export class AcademiesService {
 
     return {
       status: 'success',
+    };
+  }
+
+  // MODULES
+
+  async addModule(createModuleDto: CreateModuleDto) {
+    const module = {
+      id: nanoid(20),
+      ...createModuleDto,
+    };
+
+    console.log(module);
+
+    await this.db.insert(schema.academyModules).values(module);
+
+    return {
+      status: 'success',
+      data: {
+        moduleId: module.id,
+      },
     };
   }
 

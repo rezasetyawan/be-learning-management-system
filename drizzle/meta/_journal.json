@@ -71,6 +71,13 @@
       "when": 1704615878289,
       "tag": "0009_good_wraith",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1704767736560,
+      "tag": "0010_hard_dark_phoenix",
+      "breakpoints": true
     }
   ]
 }

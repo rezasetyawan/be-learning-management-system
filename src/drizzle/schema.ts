@@ -70,8 +70,8 @@ export const academyModules = pgTable('academy_modules', {
   academyModuleGroupId: varchar('academy_module_group_id', { length: 50 })
     .references(() => academyModuleGroups.id, { onDelete: 'cascade' })
     .notNull(),
-  type: academyModuleTypesEnum('module_types').notNull(),
-  content: text('content').notNull(),
+  type: academyModuleTypesEnum('module_types').notNull().default('LESSON'),
+  content: text('content').notNull().default(''),
   isPublished: boolean('is_published').default(true),
   // isComplete: boolean('is_complete').default(false),
 });

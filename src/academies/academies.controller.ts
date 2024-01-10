@@ -17,6 +17,8 @@ import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 // import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { Express } from 'express';
+import { CreateModuleGroupDto } from './dto/create-module-group.dto';
+import { CreateModuleDto } from './dto/create-module.dto';
 
 @Controller('academies')
 export class AcademiesController {
@@ -54,6 +56,12 @@ export class AcademiesController {
     return this.academiesService.findOne(id);
   }
 
+  // MODULE GROUP
+  @Post(':academyId/module-groups')
+  addModuleGroup(@Body() createModuleGroupDto: CreateModuleGroupDto) {
+    return this.academiesService.addModuleGroup(createModuleGroupDto);
+  }
+
   @Patch(':academyId/module-groups/:moduleGroupId')
   updateModuleGroup(
     @Param('academyId') academyId: string,
@@ -65,6 +73,12 @@ export class AcademiesController {
       moduleGroupId,
       updateModuleGroupDto,
     );
+  }
+
+  // MODULES
+  @Post(':academyId/module-groups/:moduleGroupId/modules')
+  addModule(@Body() createModuleDto: CreateModuleDto) {
+    return this.academiesService.addModule(createModuleDto);
   }
 
   @Patch(':academyId/module-groups/:moduleGroupId/modules/:moduleId')
@@ -81,9 +95,4 @@ export class AcademiesController {
       updateModuleDto,
     );
   }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.academiesService.remove(+id);
-  // }
 }
