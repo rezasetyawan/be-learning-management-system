@@ -76,6 +76,15 @@ export class AcademiesController {
   }
 
   // MODULES
+  @Get(':academyId/module-groups/:moduleGroupId/modules/:moduleId')
+  getModule(
+    @Param('academyId') academyId: string,
+    @Param('moduleGroupId') moduleGroupId: string,
+    @Param('moduleId') moduleId: string,
+  ) {
+    return this.academiesService.getModule(academyId, moduleGroupId, moduleId);
+  }
+
   @Post(':academyId/module-groups/:moduleGroupId/modules')
   addModule(@Body() createModuleDto: CreateModuleDto) {
     return this.academiesService.addModule(createModuleDto);

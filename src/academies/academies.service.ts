@@ -164,6 +164,34 @@ export class AcademiesService {
 
   // MODULES
 
+  async getModule(academyId: string, moduleGroupId: string, moduleId: string) {
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const moduleGroup = await this.db
+      .select({ id: schema.academyModuleGroups.id })
+      .from(schema.academyModuleGroups)
+      .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    if (!moduleGroup) {
+      throw new NotFoundException('Module group not found');
+    }
+
+    const module = await this.db.query.academyModules.findFirst({
+      where: (academyModules, { eq }) => eq(academyModules.id, moduleId),
+    });
+
+    return {
+      status: 'success',
+      data: module,
+    };
+  }
   async addModule(createModuleDto: CreateModuleDto) {
     const module = {
       id: nanoid(20),
