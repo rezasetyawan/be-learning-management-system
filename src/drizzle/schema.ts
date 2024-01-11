@@ -31,6 +31,7 @@ export const academies = pgTable('academies', {
   description: text('description').notNull().default(' '),
   isPublished: boolean('is_published').default(false),
   coverImageUrl: text('cover_image_url').default(''),
+  isDeleted: boolean('is_deleted').default(false),
 });
 
 export const academiesRelations = relations(academies, ({ many }) => ({
@@ -47,7 +48,7 @@ export const academyModuleGroups = pgTable('academy_module_groups', {
     .references(() => academies.id, { onDelete: 'cascade' })
     .notNull(),
   isPublished: boolean('is_published').default(true),
-  // isComplete: boolean('is_complete').default(false),
+  isDeleted: boolean('is_deleted').default(false),
 });
 
 export const academyModuleGroupsRelations = relations(
@@ -73,7 +74,7 @@ export const academyModules = pgTable('academy_modules', {
   type: academyModuleTypesEnum('module_types').notNull().default('LESSON'),
   content: text('content').notNull().default(''),
   isPublished: boolean('is_published').default(true),
-  // isComplete: boolean('is_complete').default(false),
+  isDeleted: boolean('is_deleted').default(false),
 });
 
 export const academyModulesRelations = relations(academyModules, ({ one }) => ({

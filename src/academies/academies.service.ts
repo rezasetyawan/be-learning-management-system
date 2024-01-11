@@ -80,13 +80,16 @@ export class AcademiesService {
   }
 
   async findAll() {
-    const academies = await this.db.query.academies.findMany();
-    return academies;
+    const data = await this.db.query.academies.findMany({
+      where: (academies, { eq }) => eq(academies.isDeleted, false),
+    });
+    return data;
   }
 
   async findOne(id: string) {
     const data = await this.db.query.academies.findFirst({
-      where: (academies, { eq }) => eq(academies.id, id),
+      where: (academies, { and, eq }) =>
+        and(eq(academies.id, id), eq(academies.isDeleted, false)),
       with: {
         moduleGroups: {
           columns: {
@@ -103,8 +106,10 @@ export class AcademiesService {
                 academyModuleGroupId: false,
               },
               orderBy: (modules, { asc }) => [asc(modules.order)],
+              where: (modules, { eq }) => eq(modules.isDeleted, false),
             },
           },
+          where: (moduleGroups, { eq }) => eq(moduleGroups.isDeleted, false),
         },
       },
     });
@@ -205,7 +210,11 @@ export class AcademiesService {
     }
 
     const module = await this.db.query.academyModules.findFirst({
-      where: (academyModules, { eq }) => eq(academyModules.id, moduleId),
+      where: (academyModules, { and, eq }) =>
+        and(
+          eq(academyModules.id, moduleId),
+          eq(academyModules.isDeleted, false),
+        ),
     });
 
     return {
