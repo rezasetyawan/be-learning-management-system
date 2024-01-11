@@ -129,6 +129,27 @@ export class AcademiesService {
       },
     };
   }
+
+  async addModulePicture(
+    moduleId: string,
+    modulePicture?: Express.Multer.File,
+  ) {
+    if (modulePicture) {
+      const fileName = `${moduleId}-${Date.now()}`;
+      const fileUrl = await this.supabaseService.uploadToPublicStorage(
+        SupabaseBucket.MODULE_PICTURES,
+        modulePicture,
+        fileName,
+      );
+
+      return {
+        status: 'success',
+        data: {
+          image_url: fileUrl,
+        },
+      };
+    }
+  }
   async updateModuleGroup(
     academyId: string,
     moduleGroupId: string,

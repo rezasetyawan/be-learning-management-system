@@ -90,6 +90,16 @@ export class AcademiesController {
     return this.academiesService.addModule(createModuleDto);
   }
 
+  @Post(':academyId/module-groups/:moduleGroupId/modules/:moduleId/images')
+  @UseInterceptors(FileInterceptor('modulePicture'))
+  addImage(
+    @Param('moduleId') moduleId: string,
+    @UploadedFile()
+    modulePicture?: Express.Multer.File,
+  ) {
+    return this.academiesService.addModulePicture(moduleId, modulePicture);
+  }
+
   @Patch(':academyId/module-groups/:moduleGroupId/modules/:moduleId')
   updateModule(
     @Param('academyId') academyId: string,
