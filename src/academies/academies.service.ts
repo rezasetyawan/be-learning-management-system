@@ -44,7 +44,7 @@ export class AcademiesService {
   ) {
     const { name, updatedAt, description, isPublished } = updateAcademyDto;
 
-    if (name || updatedAt || description || isPublished) {
+    if (name || updatedAt || description || isPublished !== undefined) {
       await this.db
         .update(schema.academies)
         .set(updateAcademyDto)
