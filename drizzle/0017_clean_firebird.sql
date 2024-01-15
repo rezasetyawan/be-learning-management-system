@@ -1,0 +1,1 @@
+ALTER TABLE "quizzes" ALTER COLUMN "question_amounts" SET DEFAULT 5;

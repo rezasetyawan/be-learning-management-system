@@ -6,7 +6,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../drizzle/schema';
 import { SupabaseService } from 'lib/supabase.service';
 import { UpdateModuleDto } from './dto/update-module.dto';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
 import { nanoid } from 'nanoid';
 import { UpdateAcademyDto } from './dto/update-academy.dto';
@@ -14,6 +14,11 @@ import { Express } from 'express';
 import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
 import { CreateModuleGroupDto } from './dto/create-module-group.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
+import { CreateQuizzDto } from './dto/quizz/create-quizz-dto';
+import { CreateQuizzQuestionDto } from './dto/quizz-question/create-quizz-question.dto';
+import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-question-answer.dto';
+import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
+import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 
 @Injectable()
 export class AcademiesService {
@@ -217,10 +222,41 @@ export class AcademiesService {
         ),
     });
 
-    return {
-      status: 'success',
-      data: module,
-    };
+    if (module.type === 'LESSON') {
+      return {
+        status: 'success',
+        data: module,
+      };
+    }
+
+    if (module.type === 'QUIZZ') {
+      // const questionAmounts = await this.db.query.quizzes.findFirst({
+      //   where: (quizzes, { eq }) => eq(quizzes.moduleId, module.id),
+      //   columns: {
+      //     questionAmounts: true,
+      //   },
+      // });
+      const quizz = await this.db.query.quizzes.findFirst({
+        where: (quizzes, { eq }) => eq(quizzes.moduleId, module.id),
+        with: {
+          questions: {
+            where: (questions, { eq }) => eq(questions.isDeleted, false),
+            orderBy: sql`random()`,
+            // limit: questionAmounts ? questionAmounts.questionAmounts : 3,
+            with: {
+              answers: {
+                where: (answers, { eq }) => eq(answers.isDeleted, false),
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        status: 'success',
+        data: { ...module, quizz },
+      };
+    }
   }
   async addModule(createModuleDto: CreateModuleDto) {
     const module = {
@@ -276,6 +312,195 @@ export class AcademiesService {
       .update(schema.academyModules)
       .set(updateModuleDto)
       .where(eq(schema.academyModules.id, moduleId));
+
+    return {
+      status: 'success',
+    };
+  }
+
+  // QUIZZES
+
+  async createQuizz(moduleId: string, createQuizzDto: CreateQuizzDto) {
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module) {
+      throw new NotFoundException('Module not found');
+    }
+
+    const quizz = await this.db
+      .select({ id: schema.quizzes.id })
+      .from(schema.quizzes)
+      .where(eq(schema.quizzes.moduleId, moduleId));
+
+    if (quizz.length) {
+      return {
+        status: 'success',
+      };
+    }
+
+    const newQuizz = {
+      id: nanoid(20),
+      ...createQuizzDto,
+    };
+
+    await this.db.insert(schema.quizzes).values(newQuizz);
+    return {
+      status: 'success',
+    };
+  }
+
+  async updateQuizz(moduleId: string, updateQuizzDto: UpdateQuizzDto) {
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module) {
+      throw new NotFoundException('Module not found');
+    }
+
+    await this.db
+      .update(schema.quizzes)
+      .set(updateQuizzDto)
+      .where(eq(schema.quizzes.moduleId, moduleId));
+
+    return {
+      status: 'success',
+    };
+  }
+
+  // QUESTIONS
+
+  async createQuizzQuestion(
+    moduleId: string,
+    quizzId: string,
+    createQuizzQuestionDto: CreateQuizzQuestionDto,
+  ) {
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module.length) {
+      throw new NotFoundException('Module not found');
+    }
+
+    const quizz = await this.db
+      .select({ id: schema.quizzes.id })
+      .from(schema.quizzes)
+      .where(eq(schema.quizzes.id, quizzId));
+
+    if (!quizz.length) {
+      throw new NotFoundException('Quizz not found');
+    }
+
+    // const updatePayload = createQuizzQuestionDto;
+    // delete updatePayload.id;
+
+    console.log(createQuizzQuestionDto);
+    await this.db
+      .insert(schema.quizzQuestions)
+      .values(createQuizzQuestionDto)
+      .onConflictDoUpdate({
+        target: schema.quizzQuestions.id,
+        set: createQuizzQuestionDto,
+      });
+    return {
+      status: 'success',
+    };
+  }
+
+  // QUESTION ANSWERS
+  async createQuestionAnswer(
+    moduleId: string,
+    quizzId: string,
+    questionId: string,
+    createQuestionAnswerDto: CreateQuestionAnswerDto[],
+  ) {
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module.length) {
+      throw new NotFoundException('Module not found');
+    }
+
+    const quizz = await this.db
+      .select({ id: schema.quizzes.id })
+      .from(schema.quizzes)
+      .where(eq(schema.quizzes.id, quizzId));
+
+    if (!quizz.length) {
+      throw new NotFoundException('Quizz not found');
+    }
+
+    const question = await this.db
+      .select({ id: schema.quizzQuestions.id })
+      .from(schema.quizzQuestions)
+      .where(eq(schema.quizzQuestions.id, questionId));
+
+    if (!question.length) {
+      throw new NotFoundException('Question not found');
+    }
+
+    const answerPromises = createQuestionAnswerDto.map((answer) =>
+      this.db
+        .insert(schema.quizzAnswerChoices)
+        .values(answer)
+        .onConflictDoUpdate({
+          target: schema.quizzAnswerChoices.id,
+          set: answer,
+        }),
+    );
+
+    await Promise.all(answerPromises);
+
+    return {
+      status: 'success',
+    };
+  }
+  async updateQuestionAnswer(
+    moduleId: string,
+    quizzId: string,
+    questionId: string,
+    answerId: string,
+    updateQuestionAnswerDto: UpdateQuestionAnswerDto,
+  ) {
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module.length) {
+      throw new NotFoundException('Module not found');
+    }
+
+    const quizz = await this.db
+      .select({ id: schema.quizzes.id })
+      .from(schema.quizzes)
+      .where(eq(schema.quizzes.id, quizzId));
+
+    if (!quizz.length) {
+      throw new NotFoundException('Quizz not found');
+    }
+
+    const question = await this.db
+      .select({ id: schema.quizzQuestions.id })
+      .from(schema.quizzQuestions)
+      .where(eq(schema.quizzQuestions.id, questionId));
+
+    if (!question.length) {
+      throw new NotFoundException('Question not found');
+    }
+
+    await this.db
+      .update(schema.quizzAnswerChoices)
+      .set(updateQuestionAnswerDto)
+      .where(eq(schema.quizzAnswerChoices.id, answerId));
 
     return {
       status: 'success',
