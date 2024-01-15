@@ -84,6 +84,69 @@ export const academyModulesRelations = relations(academyModules, ({ one }) => ({
   }),
 }));
 
+export const quizzes = pgTable('quizzes', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+  moduleId: varchar('module_id', { length: 50 })
+    .references(() => academyModules.id, { onDelete: 'cascade' })
+    .notNull(),
+  duration: smallserial('duration'),
+  isDeleted: boolean('is_deleted').default(false),
+  questionAmounts: smallserial('question_amounts'),
+});
+
+export const quizzesRelations = relations(quizzes, ({ many, one }) => ({
+  questions: many(quizzQuestions),
+  module: one(academyModules, {
+    fields: [quizzes.moduleId],
+    references: [academyModules.id],
+  }),
+}));
+
+export const quizzQuestions = pgTable('quizz_questions', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+  quizzId: varchar('quizz_id', { length: 500 })
+    .references(() => quizzes.id, { onDelete: 'cascade' })
+    .notNull(),
+  text: text('text').notNull().default(''),
+  isDeleted: boolean('is_deleted').default(false),
+});
+
+export const quizzQuestionsReLATIONS = relations(
+  quizzQuestions,
+  ({ many, one }) => ({
+    answers: many(quizzAnswerChoices),
+    quizz: one(quizzes, {
+      fields: [quizzQuestions.quizzId],
+      references: [quizzes.id],
+    }),
+  }),
+);
+
+export const quizzAnswerChoices = pgTable('quizz_answer_choices', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+  questionId: varchar('question_id', { length: 500 })
+    .references(() => quizzQuestions.id, { onDelete: 'cascade' })
+    .notNull(),
+  text: text('text').notNull().default(''),
+  isCorrect: boolean('is_correct').notNull().default(false),
+  isDeleted: boolean('is_deleted').default(false),
+});
+
+export const quizzAnswerChoicesRelations = relations(
+  quizzAnswerChoices,
+  ({ one }) => ({
+    questions: one(quizzQuestions, {
+      fields: [quizzAnswerChoices.questionId],
+      references: [quizzQuestions.id],
+    }),
+  }),
+);
 // export const authentications = pgTable('authentications', {
 //   id: varchar('id', { length: 50 }).primaryKey(),
 //   token: text('token').notNull().unique(),
