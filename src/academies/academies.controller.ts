@@ -19,6 +19,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { CreateModuleGroupDto } from './dto/create-module-group.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
+import { CreateQuizzDto } from './dto/quizz/create-quizz-dto';
+import { CreateQuizzQuestionDto } from './dto/quizz-question/create-quizz-question.dto';
+import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-question-answer.dto';
+import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
+import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 
 @Controller('academies')
 export class AcademiesController {
@@ -112,6 +117,72 @@ export class AcademiesController {
       moduleGroupId,
       moduleId,
       updateModuleDto,
+    );
+  }
+
+  // QUIZZES
+  @Post('modules/:moduleId/quizz')
+  createQuizz(
+    @Param('moduleId') moduleId: string,
+    @Body() createQuizzDto: CreateQuizzDto,
+  ) {
+    return this.academiesService.createQuizz(moduleId, createQuizzDto);
+  }
+
+  @Patch('modules/:moduleId/quizz')
+  updateQuizz(
+    @Param('moduleId') moduleId: string,
+    @Body() updateQuizzDto: UpdateQuizzDto,
+  ) {
+    return this.academiesService.updateQuizz(moduleId, updateQuizzDto);
+  }
+
+  // QUESTIONS
+  @Post('/modules/:moduleId/quizz/:quizzId/questions')
+  createQuestion(
+    @Param('moduleId') moduleId: string,
+    @Param('quizzId') quizzId: string,
+    @Body() createQuizzQuestionDto: CreateQuizzQuestionDto,
+  ) {
+    return this.academiesService.createQuizzQuestion(
+      moduleId,
+      quizzId,
+      createQuizzQuestionDto,
+    );
+  }
+
+  // ANSWER CHOICES
+  @Post('/modules/:moduleId/quizz/:quizzId/questions/:questionId')
+  createAnswerChoice(
+    @Param('moduleId') moduleId: string,
+    @Param('quizzId') quizzId: string,
+    @Param('questionId') questionId: string,
+    @Body() createQuestionAnswerDto: CreateQuestionAnswerDto[],
+  ) {
+    return this.academiesService.createQuestionAnswer(
+      moduleId,
+      quizzId,
+      questionId,
+      createQuestionAnswerDto,
+    );
+  }
+
+  @Patch(
+    '/modules/:moduleId/quizz/:quizzId/questions/:questionId/answers/:answerId',
+  )
+  updateAnswerChoice(
+    @Param('moduleId') moduleId: string,
+    @Param('quizzId') quizzId: string,
+    @Param('questionId') questionId: string,
+    @Param('answerId') answerId: string,
+    @Body() updateQuestionAnswerDto: UpdateQuestionAnswerDto,
+  ) {
+    return this.academiesService.updateQuestionAnswer(
+      moduleId,
+      quizzId,
+      questionId,
+      answerId,
+      updateQuestionAnswerDto,
     );
   }
 }
