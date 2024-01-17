@@ -32,6 +32,7 @@ export const academies = pgTable('academies', {
   isPublished: boolean('is_published').default(false),
   coverImageUrl: text('cover_image_url').default(''),
   isDeleted: boolean('is_deleted').default(false),
+  deletedAt: varchar('deleted_at', { length: 50 }).default(null),
 });
 
 export const academiesRelations = relations(academies, ({ many }) => ({
@@ -49,6 +50,7 @@ export const academyModuleGroups = pgTable('academy_module_groups', {
     .notNull(),
   isPublished: boolean('is_published').default(true),
   isDeleted: boolean('is_deleted').default(false),
+  deletedAt: varchar('deleted_at', { length: 50 }).default(null),
 });
 
 export const academyModuleGroupsRelations = relations(
@@ -75,6 +77,7 @@ export const academyModules = pgTable('academy_modules', {
   content: text('content').notNull().default(''),
   isPublished: boolean('is_published').default(true),
   isDeleted: boolean('is_deleted').default(false),
+  deletedAt: varchar('deleted_at', { length: 50 }).default(null),
 });
 
 export const academyModulesRelations = relations(academyModules, ({ one }) => ({
@@ -113,6 +116,7 @@ export const quizzQuestions = pgTable('quizz_questions', {
     .notNull(),
   text: text('text').notNull().default(''),
   isDeleted: boolean('is_deleted').default(false),
+  deletedAt: varchar('deleted_at', { length: 50 }).default(null),
 });
 
 export const quizzQuestionsReLATIONS = relations(
@@ -136,6 +140,7 @@ export const quizzAnswerChoices = pgTable('quizz_answer_choices', {
   text: text('text').notNull().default(''),
   isCorrect: boolean('is_correct').notNull().default(false),
   isDeleted: boolean('is_deleted').default(false),
+  deletedAt: varchar('deleted_at', { length: 50 }).default(null),
 });
 
 export const quizzAnswerChoicesRelations = relations(

@@ -24,6 +24,7 @@ import { CreateQuizzQuestionDto } from './dto/quizz-question/create-quizz-questi
 import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-question-answer.dto';
 import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
 import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
+import { UpdateQuizzQuestionDto } from './dto/quizz-question/update-quzz-question.dto';
 
 @Controller('academies')
 export class AcademiesController {
@@ -148,6 +149,21 @@ export class AcademiesController {
       moduleId,
       quizzId,
       createQuizzQuestionDto,
+    );
+  }
+
+  @Patch('/modules/:moduleId/quizz/:quizzId/questions/:questionId')
+  updateQuestion(
+    @Param('moduleId') moduleId: string,
+    @Param('quizzId') quizzId: string,
+    @Param('questionId') questionId: string,
+    @Body() updateQuizzQuestionDto: UpdateQuizzQuestionDto,
+  ) {
+    return this.academiesService.updateQuizzQuestion(
+      moduleId,
+      quizzId,
+      questionId,
+      updateQuizzQuestionDto,
     );
   }
 

@@ -13,4 +13,6 @@ export class CreateModuleGroupDto {
   isPublished: boolean;
   @IsNotEmpty()
   order: number;
+  isDeleted: boolean;
+  deletedAt?: string;
 }

@@ -11,4 +11,6 @@ export class CreateAcademyDto {
   description: string;
   @IsNotEmpty()
   isPublished: boolean;
+  isDeleted: boolean;
+  deletedAt?: string;
 }

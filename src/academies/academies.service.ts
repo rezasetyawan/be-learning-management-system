@@ -19,6 +19,7 @@ import { CreateQuizzQuestionDto } from './dto/quizz-question/create-quizz-questi
 import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-question-answer.dto';
 import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
 import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
+import { UpdateQuizzQuestionDto } from './dto/quizz-question/update-quzz-question.dto';
 
 @Injectable()
 export class AcademiesService {
@@ -47,9 +48,16 @@ export class AcademiesService {
     updateAcademyDto: UpdateAcademyDto,
     academyCoverPicture?: Express.Multer.File,
   ) {
-    const { name, updatedAt, description, isPublished } = updateAcademyDto;
+    const { name, updatedAt, description, isPublished, isDeleted } =
+      updateAcademyDto;
 
-    if (name || updatedAt || description || isPublished !== undefined) {
+    if (
+      name ||
+      updatedAt ||
+      description ||
+      isPublished !== undefined ||
+      isDeleted !== undefined
+    ) {
       await this.db
         .update(schema.academies)
         .set(updateAcademyDto)
@@ -85,16 +93,17 @@ export class AcademiesService {
   }
 
   async findAll() {
-    const data = await this.db.query.academies.findMany({
-      where: (academies, { eq }) => eq(academies.isDeleted, false),
-    });
+    const data = await this.db.query.academies.findMany();
+    // {
+    //   where: (academies, { eq }) => eq(academies.isDeleted, false),
+    // }
     return data;
   }
 
   async findOne(id: string) {
     const data = await this.db.query.academies.findFirst({
-      where: (academies, { and, eq }) =>
-        and(eq(academies.id, id), eq(academies.isDeleted, false)),
+      where: (academies, { and, eq }) => and(eq(academies.id, id)),
+      // and(eq(academies.id, id), eq(academies.isDeleted, false)),
       with: {
         moduleGroups: {
           columns: {
@@ -119,6 +128,9 @@ export class AcademiesService {
       },
     });
 
+    if (!data) {
+      throw new NotFoundException('Academy not found');
+    }
     return {
       status: 'success',
       data: data,
@@ -170,7 +182,7 @@ export class AcademiesService {
       .from(schema.academies)
       .where(eq(schema.academies.id, academyId));
 
-    if (!academy) {
+    if (!academy.length) {
       throw new NotFoundException('Academy not found');
     }
 
@@ -179,7 +191,7 @@ export class AcademiesService {
       .from(schema.academyModuleGroups)
       .where(eq(schema.academyModuleGroups.id, moduleGroupId));
 
-    if (!moduleGroup) {
+    if (!moduleGroup.length) {
       throw new NotFoundException('Module group not found');
     }
 
@@ -201,7 +213,7 @@ export class AcademiesService {
       .from(schema.academies)
       .where(eq(schema.academies.id, academyId));
 
-    if (!academy) {
+    if (!academy.length) {
       throw new NotFoundException('Academy not found');
     }
 
@@ -210,7 +222,7 @@ export class AcademiesService {
       .from(schema.academyModuleGroups)
       .where(eq(schema.academyModuleGroups.id, moduleGroupId));
 
-    if (!moduleGroup) {
+    if (!moduleGroup.length) {
       throw new NotFoundException('Module group not found');
     }
 
@@ -221,6 +233,10 @@ export class AcademiesService {
           eq(academyModules.isDeleted, false),
         ),
     });
+
+    if (!module) {
+      throw new NotFoundException('Module not found');
+    }
 
     if (module.type === 'LESSON' || module.type === 'SUBMISSION') {
       return {
@@ -287,7 +303,7 @@ export class AcademiesService {
       .from(schema.academies)
       .where(eq(schema.academies.id, academyId));
 
-    if (!academy) {
+    if (!academy.length) {
       throw new NotFoundException('Academy not found');
     }
 
@@ -296,7 +312,7 @@ export class AcademiesService {
       .from(schema.academyModuleGroups)
       .where(eq(schema.academyModuleGroups.id, moduleGroupId));
 
-    if (!moduleGroup) {
+    if (!moduleGroup.length) {
       throw new NotFoundException('Module group not found');
     }
     const module = await this.db
@@ -304,7 +320,7 @@ export class AcademiesService {
       .from(schema.academyModules)
       .where(eq(schema.academyModules.id, moduleId));
 
-    if (!module) {
+    if (!module.length) {
       throw new NotFoundException('Module not found');
     }
 
@@ -326,7 +342,7 @@ export class AcademiesService {
       .from(schema.academyModules)
       .where(eq(schema.academyModules.id, moduleId));
 
-    if (!module) {
+    if (!module.length) {
       throw new NotFoundException('Module not found');
     }
 
@@ -358,7 +374,7 @@ export class AcademiesService {
       .from(schema.academyModules)
       .where(eq(schema.academyModules.id, moduleId));
 
-    if (!module) {
+    if (!module.length) {
       throw new NotFoundException('Module not found');
     }
 
@@ -413,6 +429,47 @@ export class AcademiesService {
     };
   }
 
+  async updateQuizzQuestion(
+    moduleId: string,
+    quizzId: string,
+    questionId: string,
+    updateQuizzQuestionDto: UpdateQuizzQuestionDto,
+  ) {
+    const module = await this.db
+      .select({ id: schema.academyModules.id })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module.length) {
+      throw new NotFoundException('Module not found');
+    }
+
+    const quizz = await this.db
+      .select({ id: schema.quizzes.id })
+      .from(schema.quizzes)
+      .where(eq(schema.quizzes.id, quizzId));
+
+    if (!quizz.length) {
+      throw new NotFoundException('Quizz not found');
+    }
+
+    const question = await this.db
+      .select({ id: schema.quizzQuestions.id })
+      .from(schema.quizzQuestions)
+      .where(eq(schema.quizzQuestions.id, questionId));
+
+    if (!question.length) {
+      throw new NotFoundException('Question not found');
+    }
+    await this.db
+      .update(schema.quizzQuestions)
+      .set(updateQuizzQuestionDto)
+      .where(eq(schema.quizzQuestions.id, questionId));
+
+    return {
+      status: 'success',
+    };
+  }
   // QUESTION ANSWERS
   async createQuestionAnswer(
     moduleId: string,

@@ -17,4 +17,6 @@ export class CreateModuleDto {
   isPublished: boolean;
   @IsNotEmpty()
   order: number;
+  isDeleted: boolean;
+  deletedAt?: string;
 }

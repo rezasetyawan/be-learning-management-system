@@ -13,4 +13,6 @@ export class CreateQuestionAnswerDto {
   text: string;
   @IsNotEmpty()
   isCorrect: boolean;
+  isDeleted: boolean;
+  deletedAt?: string;
 }

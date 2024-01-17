@@ -11,4 +11,6 @@ export class CreateQuizzQuestionDto {
   quizzId: string;
   @IsNotEmpty()
   text: string;
+  isDeleted: boolean;
+  deletedAt?: string;
 }
