@@ -222,7 +222,7 @@ export class AcademiesService {
         ),
     });
 
-    if (module.type === 'LESSON') {
+    if (module.type === 'LESSON' || module.type === 'SUBMISSION') {
       return {
         status: 'success',
         data: module,
