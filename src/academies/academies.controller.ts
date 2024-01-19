@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -81,7 +82,23 @@ export class AcademiesController {
     );
   }
 
+  @Get(':academyId/module-groups')
+  getModuleGroups(
+    @Param('academyId') academyId: string,
+    @Query('isDeleted') isDeleted: boolean = false,
+  ) {
+    return this.academiesService.getModuleGroups(academyId, isDeleted);
+  }
+
   // MODULES
+  @Get(':academyId/modules')
+  getModules(
+    @Param('academyId') academyId: string,
+    @Query('isDeleted') isDeleted: boolean = false,
+  ) {
+    return this.academiesService.getModules(academyId, isDeleted);
+  }
+
   @Get(':academyId/module-groups/:moduleGroupId/modules/:moduleId')
   getModule(
     @Param('academyId') academyId: string,
@@ -139,6 +156,12 @@ export class AcademiesController {
   }
 
   // QUESTIONS
+  // @Get('/modules/:moduleId/quizz/:quizzId/questions')
+  // getQuestions(
+  //   @Param('moduleId') moduleId: string,
+  //   @Param('quizzId') quizzId: string,
+  // ) {}
+
   @Post('/modules/:moduleId/quizz/:quizzId/questions')
   createQuestion(
     @Param('moduleId') moduleId: string,

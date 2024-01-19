@@ -152,26 +152,6 @@ export class AcademiesService {
     };
   }
 
-  async addModulePicture(
-    moduleId: string,
-    modulePicture?: Express.Multer.File,
-  ) {
-    if (modulePicture) {
-      const fileName = `${moduleId}-${Date.now()}`;
-      const fileUrl = await this.supabaseService.uploadToPublicStorage(
-        SupabaseBucket.MODULE_PICTURES,
-        modulePicture,
-        fileName,
-      );
-
-      return {
-        status: 'success',
-        data: {
-          image_url: fileUrl,
-        },
-      };
-    }
-  }
   async updateModuleGroup(
     academyId: string,
     moduleGroupId: string,
@@ -205,7 +185,71 @@ export class AcademiesService {
     };
   }
 
+  async getModuleGroups(academyId: string, isDeleted: boolean) {
+    const data = await this.db.query.academyModuleGroups.findMany({
+      where: (modules, { and, eq }) =>
+        and(eq(modules.academyId, academyId), eq(modules.isDeleted, isDeleted)),
+    });
+
+    return {
+      status: 'success',
+      data: data,
+    };
+  }
+
   // MODULES
+  async getModules(academyId: string, isDeleted: boolean) {
+    const data = await this.db.query.academies.findFirst({
+      where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
+      columns: {
+        name: true,
+      },
+      with: {
+        moduleGroups: {
+          columns: {
+            id: true,
+            name: true,
+          },
+          orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
+          with: {
+            modules: {
+              columns: {
+                createdAt: false,
+                updatedAt: false,
+                academyModuleGroupId: false,
+              },
+              orderBy: (modules, { asc }) => [asc(modules.order)],
+              where: (modules, { eq }) => eq(modules.isDeleted, isDeleted),
+            },
+          },
+        },
+      },
+    });
+    return {
+      status: 'success',
+      data: data,
+    };
+  }
+  async addModulePicture(
+    moduleId: string,
+    modulePicture?: Express.Multer.File,
+  ) {
+    if (modulePicture) {
+      const fileName = `${moduleId}-${Date.now()}`;
+      const fileUrl = await this.supabaseService.uploadToPublicStorage(
+        SupabaseBucket.MODULE_PICTURES,
+        modulePicture,
+        fileName,
+      );
+
+      return {
+        status: 'success',
+        data: {
+          image_url: fileUrl,
+        },
+      };
+    }
+  }
 
   async getModule(academyId: string, moduleGroupId: string, moduleId: string) {
     const academy = await this.db
