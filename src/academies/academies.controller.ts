@@ -6,6 +6,8 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  UnauthorizedException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -17,7 +19,7 @@ import { CreateAcademyDto } from './dto/create-academy.dto';
 import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 // import { UpdateAcademyDto } from './dto/update-academy.dto';
-import { Express } from 'express';
+import { Express, Request } from 'express';
 import { CreateModuleGroupDto } from './dto/create-module-group.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { CreateQuizzDto } from './dto/quizz/create-quizz-dto';
@@ -61,6 +63,20 @@ export class AcademiesController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.academiesService.findOne(id);
+  }
+
+  @Get(':id/continue')
+  getUserLastReadModule(@Param('id') id: string, @Req() request: Request) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.academiesService.getUserLastReadModule(id, accessToken);
   }
 
   // MODULE GROUP

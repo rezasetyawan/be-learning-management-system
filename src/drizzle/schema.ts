@@ -152,6 +152,31 @@ export const quizzAnswerChoicesRelations = relations(
     }),
   }),
 );
+
+// TODO: UNIQUE OF OTH USER ID AND MODULE ID
+export const userModuleLastRead = pgTable('user_module_last_read', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 500 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  moduleId: varchar('module_id', { length: 500 })
+    .references(() => academyModules.id, { onDelete: 'cascade' })
+    .notNull(),
+});
+
+export const userModuleLastReadRelations = relations(
+  userModuleLastRead,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userModuleLastRead.userId],
+      references: [users.id],
+    }),
+    module: one(academyModules, {
+      fields: [userModuleLastRead.moduleId],
+      references: [academyModules.id],
+    }),
+  }),
+);
 // export const authentications = pgTable('authentications', {
 //   id: varchar('id', { length: 50 }).primaryKey(),
 //   token: text('token').notNull().unique(),

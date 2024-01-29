@@ -169,6 +169,13 @@
       "when": 1705474567400,
       "tag": "0023_cute_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1706154425730,
+      "tag": "0024_magenta_medusa",
+      "breakpoints": true
     }
   ]
 }

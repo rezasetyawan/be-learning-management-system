@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateAcademyDto } from './dto/create-academy.dto';
 // import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { PG_CONNECTION } from 'src/constants';
@@ -20,12 +25,14 @@ import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-ques
 import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
 import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 import { UpdateQuizzQuestionDto } from './dto/quizz-question/update-quzz-question.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AcademiesService {
   constructor(
     @Inject(PG_CONNECTION) private db: NodePgDatabase<typeof schema>,
     private readonly supabaseService: SupabaseService,
+    private jwtService: JwtService,
   ) {}
 
   // ACADEMIES
@@ -135,6 +142,71 @@ export class AcademiesService {
       status: 'success',
       data: data,
     };
+  }
+
+  // TODO: GET LAST READED MODULE FROM DATABASE
+  async getUserLastReadModule(academyId: string, accessToken: string) {
+    const module = await this.db.query.academies.findFirst({
+      where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
+    });
+
+    if (!module) {
+      throw new NotFoundException('Module not found');
+    }
+
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const data = this.jwtService.decode(accessToken);
+    // const user = await this.db.query.users.findFirst({
+    //   where: (users, { eq }) => eq(users.username, data.username),
+    // });
+    // return user;
+
+    const lastReadModule = await this.db.query.userModuleLastRead.findFirst({
+      where: (userModuleLastRead, { eq }) =>
+        eq(userModuleLastRead.userId, data.sub),
+      columns: {
+        moduleId: true,
+      },
+    });
+
+    if (!lastReadModule) {
+      const data = await this.db.query.academyModuleGroups.findMany({
+        columns: {
+          id: true,
+        },
+        where: (moduleGroup, { and, eq }) =>
+          and(
+            eq(moduleGroup.academyId, academyId),
+            eq(moduleGroup.isDeleted, false),
+          ),
+        orderBy: (moduleGroup, { asc }) => [asc(moduleGroup.order)],
+      });
+
+      const module = await this.db.query.academyModules.findMany({
+        columns: {
+          id: true,
+        },
+        where: (module, { and, eq }) =>
+          and(
+            eq(module.isDeleted, false),
+            eq(module.academyModuleGroupId, data[0].id),
+          ),
+        orderBy: (module, { asc }) => [asc(module.order)],
+      });
+
+      return {
+        status: 'succcess',
+        data: {
+          moduleGroupId: data[0].id,
+          moduleId: module[0].id,
+        },
+      };
+    }
   }
 
   // MODULE GROUPS
