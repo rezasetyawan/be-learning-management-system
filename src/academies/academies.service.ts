@@ -6,26 +6,26 @@ import {
 } from '@nestjs/common';
 import { CreateAcademyDto } from './dto/create-academy.dto';
 // import { UpdateAcademyDto } from './dto/update-academy.dto';
-import { PG_CONNECTION } from 'src/constants';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as schema from '../drizzle/schema';
-import { SupabaseService } from 'lib/supabase.service';
-import { UpdateModuleDto } from './dto/update-module.dto';
+import { JwtService } from '@nestjs/jwt';
 import { eq, sql } from 'drizzle-orm';
-import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { SupabaseService } from 'lib/supabase.service';
 import { nanoid } from 'nanoid';
-import { UpdateAcademyDto } from './dto/update-academy.dto';
-import { Express } from 'express';
+import { PG_CONNECTION } from 'src/constants';
 import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import * as schema from '../drizzle/schema';
 import { CreateModuleGroupDto } from './dto/create-module-group.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
-import { CreateQuizzDto } from './dto/quizz/create-quizz-dto';
-import { CreateQuizzQuestionDto } from './dto/quizz-question/create-quizz-question.dto';
+import { CreateUserLastReadDto } from './dto/create-user-last-read.dto';
 import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-question-answer.dto';
 import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
-import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
+import { CreateQuizzQuestionDto } from './dto/quizz-question/create-quizz-question.dto';
 import { UpdateQuizzQuestionDto } from './dto/quizz-question/update-quzz-question.dto';
-import { JwtService } from '@nestjs/jwt';
+import { CreateQuizzDto } from './dto/quizz/create-quizz-dto';
+import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
+import { UpdateAcademyDto } from './dto/update-academy.dto';
+import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
+import { UpdateModuleDto } from './dto/update-module.dto';
 
 @Injectable()
 export class AcademiesService {
@@ -145,6 +145,7 @@ export class AcademiesService {
   }
 
   // TODO: GET LAST READED MODULE FROM DATABASE
+  // TODO: HANDLE ERROR IF MODULE GROUP DOESN'T HAVE MODULES
   async getUserLastReadModule(academyId: string, accessToken: string) {
     const module = await this.db.query.academies.findFirst({
       where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
@@ -161,20 +162,18 @@ export class AcademiesService {
     }
 
     const data = this.jwtService.decode(accessToken);
-    // const user = await this.db.query.users.findFirst({
-    //   where: (users, { eq }) => eq(users.username, data.username),
-    // });
-    // return user;
 
     const lastReadModule = await this.db.query.userModuleLastRead.findFirst({
       where: (userModuleLastRead, { eq }) =>
         eq(userModuleLastRead.userId, data.sub),
       columns: {
+        moduleGroupId: true,
         moduleId: true,
       },
     });
 
     if (!lastReadModule) {
+      console.log('TESSTTTT');
       const data = await this.db.query.academyModuleGroups.findMany({
         columns: {
           id: true,
@@ -207,6 +206,47 @@ export class AcademiesService {
         },
       };
     }
+
+    console.log(lastReadModule);
+    return {
+      status: 'succcess',
+      data: {
+        moduleGroupId: lastReadModule.moduleGroupId,
+        moduleId: lastReadModule.moduleId,
+      },
+    };
+  }
+
+  async upsertUserLastReadModul(
+    academyId: string,
+    accessToken: string,
+    createUserLastReadDto: CreateUserLastReadDto,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const data = this.jwtService.decode(accessToken);
+
+    const payload = {
+      ...createUserLastReadDto,
+      userId: data.sub,
+      id: data.sub,
+    };
+
+    await this.db
+      .insert(schema.userModuleLastRead)
+      .values(payload)
+      .onConflictDoUpdate({
+        target: schema.userModuleLastRead.id,
+        set: payload,
+      });
+
+    return {
+      status: 'success',
+    };
   }
 
   // MODULE GROUPS

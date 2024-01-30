@@ -176,6 +176,20 @@
       "when": 1706154425730,
       "tag": "0024_magenta_medusa",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1706575836133,
+      "tag": "0025_yellow_joystick",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1706578427548,
+      "tag": "0026_perfect_toad_men",
+      "breakpoints": true
     }
   ]
 }

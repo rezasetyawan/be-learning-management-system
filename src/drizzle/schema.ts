@@ -159,6 +159,12 @@ export const userModuleLastRead = pgTable('user_module_last_read', {
   userId: varchar('user_id', { length: 500 })
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
+  academyId: varchar('academy_id', { length: 500 })
+    .references(() => academies.id, { onDelete: 'cascade' })
+    .notNull(),
+  moduleGroupId: varchar('module_group_id', { length: 500 })
+    .references(() => academyModuleGroups.id, { onDelete: 'cascade' })
+    .notNull(),
   moduleId: varchar('module_id', { length: 500 })
     .references(() => academyModules.id, { onDelete: 'cascade' })
     .notNull(),
@@ -170,6 +176,14 @@ export const userModuleLastReadRelations = relations(
     user: one(users, {
       fields: [userModuleLastRead.userId],
       references: [users.id],
+    }),
+    academy: one(academies, {
+      fields: [userModuleLastRead.academyId],
+      references: [academies.id],
+    }),
+    moduleGroupId: one(academyModuleGroups, {
+      fields: [userModuleLastRead.moduleGroupId],
+      references: [academyModuleGroups.id],
     }),
     module: one(academyModules, {
       fields: [userModuleLastRead.moduleId],

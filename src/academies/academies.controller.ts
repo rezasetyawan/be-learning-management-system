@@ -28,6 +28,7 @@ import { CreateQuestionAnswerDto } from './dto/quizz-question-answer/create-ques
 import UpdateQuestionAnswerDto from './dto/quizz-question-answer/update-question-answer.dto';
 import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 import { UpdateQuizzQuestionDto } from './dto/quizz-question/update-quzz-question.dto';
+import { CreateUserLastReadDto } from './dto/create-user-last-read.dto';
 
 @Controller('academies')
 export class AcademiesController {
@@ -77,6 +78,29 @@ export class AcademiesController {
       throw new UnauthorizedException('Unauthorized');
     }
     return this.academiesService.getUserLastReadModule(id, accessToken);
+  }
+
+  @Post(':id/progess')
+  upsertUserLastReadModule(
+    @Param('id') id: string,
+    @Req() request: Request,
+    @Body() createUserLastReadDto: CreateUserLastReadDto,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.academiesService.upsertUserLastReadModul(
+      id,
+      accessToken,
+      createUserLastReadDto,
+    );
   }
 
   // MODULE GROUP
