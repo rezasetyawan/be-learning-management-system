@@ -19,7 +19,7 @@ import { Request } from 'express';
 export class UserQuizzHistoriesController {
   constructor(
     private readonly userQuizzHistoriesService: UserQuizzHistoriesService,
-  ) { }
+  ) {}
 
   @Post()
   create(
