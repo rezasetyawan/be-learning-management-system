@@ -23,6 +23,10 @@ export const users = pgTable('users', {
   role: text('role').default('user'),
 });
 
+export const usersRelations = relations(users, ({ many }) => ({
+  discussions: many(moduleDiscussions),
+}));
+
 export const academies = pgTable('academies', {
   id: varchar('id', { length: 50 }).primaryKey(),
   name: text('name').notNull(),
@@ -80,12 +84,16 @@ export const academyModules = pgTable('academy_modules', {
   deletedAt: varchar('deleted_at', { length: 50 }).default(null),
 });
 
-export const academyModulesRelations = relations(academyModules, ({ one }) => ({
-  group: one(academyModuleGroups, {
-    fields: [academyModules.academyModuleGroupId],
-    references: [academyModuleGroups.id],
+export const academyModulesRelations = relations(
+  academyModules,
+  ({ one, many }) => ({
+    group: one(academyModuleGroups, {
+      fields: [academyModules.academyModuleGroupId],
+      references: [academyModuleGroups.id],
+    }),
+    discussions: many(moduleDiscussions),
   }),
-}));
+);
 
 export const quizzes = pgTable('quizzes', {
   id: varchar('id', { length: 50 }).primaryKey(),
@@ -250,4 +258,63 @@ export const userQuizzAnswerHistoriesRelations = relations(
   }),
 );
 
+export const moduleDiscussions = pgTable('module_discussions', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  moduleId: varchar('module_id', { length: 50 })
+    .references(() => academyModules.id, { onDelete: 'cascade' })
+    .notNull(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+  title: text('title').default(''),
+  body: text('body').default(''),
+  isSolved: boolean('is_solved').default(false),
+  academyId: varchar('academy_id', { length: 50 })
+    .references(() => academies.id, { onDelete: 'cascade' })
+    .notNull(),
+});
+
+export const moduleDiscussionsRelations = relations(
+  moduleDiscussions,
+  ({ one, many }) => ({
+    module: one(academyModules, {
+      fields: [moduleDiscussions.moduleId],
+      references: [academyModules.id],
+    }),
+    replies: many(moduleDiscussionReplies),
+    academy: one(academies, {
+      fields: [moduleDiscussions.academyId],
+      references: [academies.id],
+    }),
+    user: one(users, {
+      fields: [moduleDiscussions.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const moduleDiscussionReplies = pgTable('module_discussion_replies', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  discussionId: varchar('discussion_id', { length: 50 })
+    .references(() => moduleDiscussions.id, { onDelete: 'cascade' })
+    .notNull(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+  body: text('body').default(''),
+});
+
+export const moduleDiscussionRepliesRelations = relations(
+  moduleDiscussionReplies,
+  ({ one }) => ({
+    discussion: one(moduleDiscussions, {
+      fields: [moduleDiscussionReplies.discussionId],
+      references: [moduleDiscussions.id],
+    }),
+  }),
+);
 export type NewUser = typeof users.$inferInsert;

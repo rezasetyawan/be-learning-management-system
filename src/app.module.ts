@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProfileModule } from './profile/profile.module';
 import { AcademiesModule } from './academies/academies.module';
 import { UserQuizzHistoriesModule } from './user-quizz-histories/user-quizz-histories.module';
+import { ModuleDiscussionsModule } from './module-discussions/module-discussions.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UserQuizzHistoriesModule } from './user-quizz-histories/user-quizz-hist
     ProfileModule,
     AcademiesModule,
     UserQuizzHistoriesModule,
+    ModuleDiscussionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
