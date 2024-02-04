@@ -492,6 +492,28 @@ export class AcademiesService {
 
   // QUIZZES
 
+  async getModuleQuizz(moduleId: string) {
+    const quizz = await this.db.query.quizzes.findFirst({
+      where: (quizzes, { eq }) => eq(quizzes.moduleId, moduleId),
+      with: {
+        questions: {
+          where: (questions, { eq }) => eq(questions.isDeleted, false),
+          orderBy: sql`random()`,
+          // limit: questionAmounts ? questionAmounts.questionAmounts : 3,
+          with: {
+            answers: {
+              where: (answers, { eq }) => eq(answers.isDeleted, false),
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      status: 'success',
+      data: quizz,
+    };
+  }
   async createQuizz(moduleId: string, createQuizzDto: CreateQuizzDto) {
     const module = await this.db
       .select({ id: schema.academyModules.id })

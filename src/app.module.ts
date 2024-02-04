@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ProfileModule } from './profile/profile.module';
 import { AcademiesModule } from './academies/academies.module';
+import { UserQuizzHistoriesModule } from './user-quizz-histories/user-quizz-histories.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AcademiesModule } from './academies/academies.module';
     AuthModule,
     ProfileModule,
     AcademiesModule,
+    UserQuizzHistoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

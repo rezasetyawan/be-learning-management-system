@@ -179,6 +179,10 @@ export class AcademiesController {
   }
 
   // QUIZZES
+  @Get('modules/:moduleId/quizz')
+  getModuleQuizz(@Param('moduleId') moduleId: string) {
+    return this.academiesService.getModuleQuizz(moduleId);
+  }
   @Post('modules/:moduleId/quizz')
   createQuizz(
     @Param('moduleId') moduleId: string,

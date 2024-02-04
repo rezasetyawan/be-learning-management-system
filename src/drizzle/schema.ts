@@ -191,9 +191,63 @@ export const userModuleLastReadRelations = relations(
     }),
   }),
 );
-// export const authentications = pgTable('authentications', {
-//   id: varchar('id', { length: 50 }).primaryKey(),
-//   token: text('token').notNull().unique(),
-// });
+
+export const userQuizzHistories = pgTable('user_quizz_histories', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  moduleId: varchar('module_id', { length: 50 })
+    .references(() => academyModules.id, { onDelete: 'cascade' })
+    .notNull(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  score: smallserial('score').notNull(),
+});
+
+export const userQuizzHistoriesRelations = relations(
+  userQuizzHistories,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [userQuizzHistories.userId],
+      references: [users.id],
+    }),
+    module: one(academyModules, {
+      fields: [userQuizzHistories.moduleId],
+      references: [academyModules.id],
+    }),
+    answers: many(userQuizzAnswerHistories),
+  }),
+);
+
+export const userQuizzAnswerHistories = pgTable('user_quizz_answer_histories', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  quizzHistoryId: varchar('quizz_history_id', { length: 50 })
+    .references(() => userQuizzHistories.id, { onDelete: 'cascade' })
+    .notNull(),
+  questionId: varchar('question_id', { length: 50 })
+    .references(() => quizzQuestions.id, { onDelete: 'cascade' })
+    .notNull(),
+  answerId: varchar('answer_id', { length: 50 })
+    .references(() => quizzAnswerChoices.id, { onDelete: 'cascade' })
+    .notNull(),
+});
+
+export const userQuizzAnswerHistoriesRelations = relations(
+  userQuizzAnswerHistories,
+  ({ one }) => ({
+    userQuizzHistory: one(userQuizzHistories, {
+      fields: [userQuizzAnswerHistories.quizzHistoryId],
+      references: [userQuizzHistories.id],
+    }),
+    question: one(quizzQuestions, {
+      fields: [userQuizzAnswerHistories.questionId],
+      references: [quizzQuestions.id],
+    }),
+    answer: one(quizzAnswerChoices, {
+      fields: [userQuizzAnswerHistories.answerId],
+      references: [quizzAnswerChoices.id],
+    }),
+  }),
+);
 
 export type NewUser = typeof users.$inferInsert;
