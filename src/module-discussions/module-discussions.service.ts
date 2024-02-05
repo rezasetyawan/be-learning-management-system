@@ -12,7 +12,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
 import { nanoid } from 'nanoid';
-import { and } from 'drizzle-orm';
+import { and, ilike } from 'drizzle-orm';
 
 @Injectable()
 export class ModuleDiscussionsService {
@@ -56,7 +56,11 @@ export class ModuleDiscussionsService {
     };
   }
 
-  async findAll(moduleId: string | undefined, academyId: string | undefined) {
+  async findAll(
+    moduleId: string | undefined,
+    academyId: string | undefined,
+    searchKey: string = '',
+  ) {
     if (!academyId) {
       throw new BadRequestException('Please provied academyId query param');
     }
@@ -76,8 +80,12 @@ export class ModuleDiscussionsService {
           ? and(
               eq(moduleDiscussions.moduleId, moduleId),
               eq(moduleDiscussions.academyId, academyId),
+              ilike(moduleDiscussions.title, `%${searchKey}%`),
             )
-          : eq(moduleDiscussions.academyId, academyId),
+          : and(
+              eq(moduleDiscussions.academyId, academyId),
+              ilike(moduleDiscussions.title, `%${searchKey}%`),
+            ),
       with: {
         user: {
           columns: {

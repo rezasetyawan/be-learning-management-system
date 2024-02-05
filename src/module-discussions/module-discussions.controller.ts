@@ -45,8 +45,9 @@ export class ModuleDiscussionsController {
   findAll(
     @Query('moduleId') moduleId: string | undefined,
     @Query('academyId') academyId: string,
+    @Query('search') search: string | undefined,
   ) {
-    return this.moduleDiscussionsService.findAll(moduleId, academyId);
+    return this.moduleDiscussionsService.findAll(moduleId, academyId, search);
   }
 
   @Get(':id')
