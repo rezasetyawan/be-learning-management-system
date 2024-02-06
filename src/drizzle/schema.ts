@@ -315,6 +315,10 @@ export const moduleDiscussionRepliesRelations = relations(
       fields: [moduleDiscussionReplies.discussionId],
       references: [moduleDiscussions.id],
     }),
+    user: one(users, {
+      fields: [moduleDiscussionReplies.userId],
+      references: [users.id],
+    }),
   }),
 );
 export type NewUser = typeof users.$inferInsert;

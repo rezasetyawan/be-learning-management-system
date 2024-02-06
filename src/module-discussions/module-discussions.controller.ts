@@ -14,6 +14,7 @@ import { ModuleDiscussionsService } from './module-discussions.service';
 import { CreateModuleDiscussionDto } from './dto/create-module-discussion.dto';
 import { UpdateModuleDiscussionDto } from './dto/update-module-discussion.dto';
 import { Request } from 'express';
+import { CreateDiscussionReplyDto } from './dto/create-dicussion-reply.dto';
 
 @Controller('module-discussions')
 export class ModuleDiscussionsController {
@@ -52,7 +53,7 @@ export class ModuleDiscussionsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.moduleDiscussionsService.findOne(+id);
+    return this.moduleDiscussionsService.findOne(id);
   }
 
   @Patch(':id')
@@ -66,5 +67,27 @@ export class ModuleDiscussionsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.moduleDiscussionsService.remove(+id);
+  }
+
+  @Post(':id/replies')
+  createReply(
+    @Param('id') id: string,
+    @Req() request: Request,
+    @Body() createDiscussionReply: CreateDiscussionReplyDto,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.moduleDiscussionsService.createRelply(
+      createDiscussionReply,
+      accessToken,
+    );
   }
 }

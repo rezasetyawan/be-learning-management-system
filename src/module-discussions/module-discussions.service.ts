@@ -13,6 +13,7 @@ import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
 import { nanoid } from 'nanoid';
 import { and, ilike } from 'drizzle-orm';
+import { CreateDiscussionReplyDto } from './dto/create-dicussion-reply.dto';
 
 @Injectable()
 export class ModuleDiscussionsService {
@@ -89,6 +90,7 @@ export class ModuleDiscussionsService {
       with: {
         user: {
           columns: {
+            fullname: true,
             username: true,
           },
         },
@@ -111,8 +113,39 @@ export class ModuleDiscussionsService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} moduleDiscussion`;
+  async findOne(discussionId: string) {
+    const data = await this.db.query.moduleDiscussions.findFirst({
+      where: (moduleDiscussions, { eq }) =>
+        eq(moduleDiscussions.id, discussionId),
+      with: {
+        user: {
+          columns: {
+            fullname: true,
+            username: true,
+          },
+        },
+        replies: {
+          with: {
+            user: {
+              columns: {
+                fullname: true,
+                username: true,
+              },
+            },
+          },
+        },
+        module: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -122,5 +155,29 @@ export class ModuleDiscussionsService {
 
   remove(id: number) {
     return `This action removes a #${id} moduleDiscussion`;
+  }
+
+  async createRelply(
+    createDiscussionReplyDto: CreateDiscussionReplyDto,
+    accessToken,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const payload = {
+      ...createDiscussionReplyDto,
+      id: nanoid(40),
+      userId: user.sub,
+    };
+
+    await this.db.insert(schema.moduleDiscussionReplies).values(payload);
+
+    return {
+      status: 'success',
+    };
   }
 }
