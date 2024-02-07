@@ -12,8 +12,9 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
 import { nanoid } from 'nanoid';
-import { and, ilike } from 'drizzle-orm';
+import { and, eq, ilike } from 'drizzle-orm';
 import { CreateDiscussionReplyDto } from './dto/create-dicussion-reply.dto';
+import { UpdateDiscussionReplyDto } from './dto/update-discussion-reply.dto';
 
 @Injectable()
 export class ModuleDiscussionsService {
@@ -149,12 +150,74 @@ export class ModuleDiscussionsService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateModuleDiscussionDto: UpdateModuleDiscussionDto) {
-    return `This action updates a #${id} moduleDiscussion`;
+  async update(
+    discussionId: string,
+    updateModuleDiscussionDto: UpdateModuleDiscussionDto,
+    accessToken: string,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const discussion = await this.db.query.moduleDiscussions.findFirst({
+      where: (moduleDiscussions, { eq }) =>
+        eq(moduleDiscussions.id, discussionId),
+      columns: {
+        userId: true,
+      },
+    });
+
+    if (!discussion.userId) {
+      throw new NotFoundException('Discussion Not Found');
+    }
+
+    if (user.sub !== discussion.userId) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    await this.db
+      .update(schema.moduleDiscussions)
+      .set(updateModuleDiscussionDto)
+      .where(eq(schema.moduleDiscussions.id, discussionId));
+
+    return {
+      status: 'success',
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} moduleDiscussion`;
+  async remove(discussionId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const discussion = await this.db.query.moduleDiscussions.findFirst({
+      where: (moduleDiscussions, { eq }) =>
+        eq(moduleDiscussions.id, discussionId),
+      columns: {
+        userId: true,
+      },
+    });
+
+    if (!discussion.userId) {
+      throw new NotFoundException('Discussion Not Found');
+    }
+
+    if (user.sub !== discussion.userId) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    await this.db
+      .delete(schema.moduleDiscussions)
+      .where(eq(schema.moduleDiscussions.id, discussionId));
+    return {
+      status: 'success',
+    };
   }
 
   async createRelply(
@@ -175,6 +238,57 @@ export class ModuleDiscussionsService {
     };
 
     await this.db.insert(schema.moduleDiscussionReplies).values(payload);
+
+    return {
+      status: 'success',
+    };
+  }
+
+  async updateReply(
+    discussionId: string,
+    updateDiscussionReplyDto: UpdateDiscussionReplyDto,
+    accessToken: string,
+    replyId: string,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const discussion = await this.db.query.moduleDiscussions.findFirst({
+      where: (moduleDiscussions, { eq }) =>
+        eq(moduleDiscussions.id, discussionId),
+      columns: {
+        userId: true,
+      },
+    });
+
+    const reply = await this.db.query.moduleDiscussionReplies.findFirst({
+      where: (moduleDiscussionReplies, { eq }) =>
+        eq(moduleDiscussionReplies.id, replyId),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!discussion.userId) {
+      throw new NotFoundException('Discussion Not Found');
+    }
+
+    if (!reply.id) {
+      throw new NotFoundException('Discussion Reply Not Found');
+    }
+
+    if (user.sub !== discussion.userId) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    await this.db
+      .update(schema.moduleDiscussionReplies)
+      .set(updateDiscussionReplyDto)
+      .where(eq(schema.moduleDiscussionReplies.id, replyId));
 
     return {
       status: 'success',

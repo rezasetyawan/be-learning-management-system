@@ -15,6 +15,7 @@ import { CreateModuleDiscussionDto } from './dto/create-module-discussion.dto';
 import { UpdateModuleDiscussionDto } from './dto/update-module-discussion.dto';
 import { Request } from 'express';
 import { CreateDiscussionReplyDto } from './dto/create-dicussion-reply.dto';
+import { UpdateDiscussionReplyDto } from './dto/update-discussion-reply.dto';
 
 @Controller('module-discussions')
 export class ModuleDiscussionsController {
@@ -60,13 +61,36 @@ export class ModuleDiscussionsController {
   update(
     @Param('id') id: string,
     @Body() updateModuleDiscussionDto: UpdateModuleDiscussionDto,
+    @Req() request: Request,
   ) {
-    return this.moduleDiscussionsService.update(+id, updateModuleDiscussionDto);
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.moduleDiscussionsService.update(
+      id,
+      updateModuleDiscussionDto,
+      accessToken,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.moduleDiscussionsService.remove(+id);
+  remove(@Param('id') id: string, @Req() request: Request) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.moduleDiscussionsService.remove(id, accessToken);
   }
 
   @Post(':id/replies')
@@ -88,6 +112,31 @@ export class ModuleDiscussionsController {
     return this.moduleDiscussionsService.createRelply(
       createDiscussionReply,
       accessToken,
+    );
+  }
+
+  @Patch(':id/replies/:replyId')
+  updateReply(
+    @Param('id') id: string,
+    @Param('replyId') replyId: string,
+    @Req() request: Request,
+    @Body() updateDiscussionReplyDto: UpdateDiscussionReplyDto,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.moduleDiscussionsService.updateReply(
+      id,
+      updateDiscussionReplyDto,
+      accessToken,
+      replyId,
     );
   }
 }
