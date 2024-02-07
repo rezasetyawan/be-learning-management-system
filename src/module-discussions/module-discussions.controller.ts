@@ -139,4 +139,23 @@ export class ModuleDiscussionsController {
       replyId,
     );
   }
+
+  @Delete(':id/replies/:replyId')
+  removeReply(
+    @Param('id') id: string,
+    @Param('replyId') replyId: string,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.moduleDiscussionsService.removeReply(id, accessToken, replyId);
+  }
 }

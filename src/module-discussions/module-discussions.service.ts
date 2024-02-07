@@ -294,4 +294,53 @@ export class ModuleDiscussionsService {
       status: 'success',
     };
   }
+
+  async removeReply(
+    discussionId: string,
+    accessToken: string,
+    replyId: string,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const discussion = await this.db.query.moduleDiscussions.findFirst({
+      where: (moduleDiscussions, { eq }) =>
+        eq(moduleDiscussions.id, discussionId),
+      columns: {
+        userId: true,
+      },
+    });
+
+    const reply = await this.db.query.moduleDiscussionReplies.findFirst({
+      where: (moduleDiscussionReplies, { eq }) =>
+        eq(moduleDiscussionReplies.id, replyId),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!discussion.userId) {
+      throw new NotFoundException('Discussion Not Found');
+    }
+
+    if (!reply.id) {
+      throw new NotFoundException('Discussion Reply Not Found');
+    }
+
+    if (user.sub !== discussion.userId) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    await this.db
+      .delete(schema.moduleDiscussionReplies)
+      .where(eq(schema.moduleDiscussionReplies.id, replyId));
+
+    return {
+      status: 'success',
+    };
+  }
 }
