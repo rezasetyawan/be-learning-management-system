@@ -302,12 +302,31 @@ export class AcademiesService {
   }
 
   // MODULE GROUPS
-  async addModuleGroup(createModuleGroupDto: CreateModuleGroupDto) {
+  async addModuleGroup(
+    createModuleGroupDto: CreateModuleGroupDto,
+    accessToken: string,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+
     const moduleGroup = {
       id: nanoid(20),
       ...createModuleGroupDto,
     };
     await this.db.insert(schema.academyModuleGroups).values(moduleGroup);
+    await this.auditLogsService.create({
+      actionType: ActionType.CREATE,
+      entityName: moduleGroup.name,
+      entityType: EntityType.ACADEMY,
+      entityId: moduleGroup.id,
+      userId: user.sub as string,
+      createdAt: moduleGroup.createdAt,
+    });
     return {
       status: 'success',
       data: {
@@ -320,7 +339,16 @@ export class AcademiesService {
     academyId: string,
     moduleGroupId: string,
     updateModuleGroupDto: UpdateModuleGroupDto,
+    accessToken: string,
   ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+
     const academy = await this.db
       .select({ id: schema.academies.id })
       .from(schema.academies)
@@ -331,7 +359,11 @@ export class AcademiesService {
     }
 
     const moduleGroup = await this.db
-      .select({ id: schema.academyModuleGroups.id })
+      .select({
+        id: schema.academyModuleGroups.id,
+        name: schema.academyModuleGroups.name,
+        isDeleted: schema.academyModuleGroups.isDeleted,
+      })
       .from(schema.academyModuleGroups)
       .where(eq(schema.academyModuleGroups.id, moduleGroupId));
 
@@ -343,6 +375,24 @@ export class AcademiesService {
       .update(schema.academyModuleGroups)
       .set(updateModuleGroupDto)
       .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    await this.auditLogsService.create({
+      actionType:
+        updateModuleGroupDto.isDeleted === undefined
+          ? ActionType.UPDATE
+          : moduleGroup[0].isDeleted !== updateModuleGroupDto.isDeleted
+            ? ActionType.DELETE
+            : ActionType.UPDATE,
+      entityName: updateModuleGroupDto.name
+        ? updateModuleGroupDto.name
+        : moduleGroup[0].name,
+      entityType: EntityType.ACADEMY,
+      entityId: academyId,
+      userId: user.sub as string,
+      createdAt: updateModuleGroupDto.deletedAt
+        ? updateModuleGroupDto.deletedAt
+        : updateModuleGroupDto.updatedAt,
+    });
 
     return {
       status: 'success',

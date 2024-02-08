@@ -126,8 +126,23 @@ export class AcademiesController {
 
   // MODULE GROUP
   @Post(':academyId/module-groups')
-  addModuleGroup(@Body() createModuleGroupDto: CreateModuleGroupDto) {
-    return this.academiesService.addModuleGroup(createModuleGroupDto);
+  addModuleGroup(
+    @Body() createModuleGroupDto: CreateModuleGroupDto,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.academiesService.addModuleGroup(
+      createModuleGroupDto,
+      accessToken,
+    );
   }
 
   @Patch(':academyId/module-groups/:moduleGroupId')
@@ -135,11 +150,22 @@ export class AcademiesController {
     @Param('academyId') academyId: string,
     @Param('moduleGroupId') moduleGroupId: string,
     @Body() updateModuleGroupDto: UpdateModuleGroupDto,
+    @Req() request: Request,
   ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
     return this.academiesService.updateModuleGroup(
       academyId,
       moduleGroupId,
       updateModuleGroupDto,
+      accessToken,
     );
   }
 
