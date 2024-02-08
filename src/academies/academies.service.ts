@@ -141,7 +141,9 @@ export class AcademiesService {
           : academy[0].isDeleted !== isDeleted
             ? ActionType.DELETE
             : ActionType.UPDATE,
-      entityName: academy[0].name,
+      entityName: updateAcademyDto.name
+        ? updateAcademyDto.name
+        : academy[0].name,
       entityType: EntityType.ACADEMY,
       entityId: academyId,
       userId: user.sub as string,
