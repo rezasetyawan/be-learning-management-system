@@ -105,9 +105,14 @@ export class AcademiesService {
       isPublished !== undefined ||
       isDeleted !== undefined
     ) {
+      const payload = {
+        ...updateAcademyDto,
+        ...(isDeleted && { deletedBy: user.sub as string }),
+        ...(isDeleted === false && { deletedBy: null }),
+      };
       await this.db
         .update(schema.academies)
-        .set(updateAcademyDto)
+        .set(payload)
         .where(eq(schema.academies.id, academyId));
     }
     if (academyCoverPicture) {
@@ -373,9 +378,15 @@ export class AcademiesService {
       throw new NotFoundException('Module group not found');
     }
 
+    const payload = {
+      ...updateModuleGroupDto,
+      ...(updateModuleGroupDto.isDeleted && { deletedBy: user.sub as string }),
+      ...(updateModuleGroupDto.isDeleted === false && { deletedBy: null }),
+    };
+
     await this.db
       .update(schema.academyModuleGroups)
-      .set(updateModuleGroupDto)
+      .set(payload)
       .where(eq(schema.academyModuleGroups.id, moduleGroupId));
 
     await this.auditLogsService.create({
@@ -611,9 +622,15 @@ export class AcademiesService {
       throw new NotFoundException('Module not found');
     }
 
+    const payload = {
+      ...updateModuleDto,
+      ...(updateModuleDto.isDeleted && { deletedBy: user.sub as string }),
+      ...(updateModuleDto.isDeleted === false && { deletedBy: null }),
+    };
+
     await this.db
       .update(schema.academyModules)
-      .set(updateModuleDto)
+      .set(payload)
       .where(eq(schema.academyModules.id, moduleId));
 
     await this.auditLogsService.create({
