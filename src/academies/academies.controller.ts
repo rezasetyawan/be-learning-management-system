@@ -196,8 +196,17 @@ export class AcademiesController {
   }
 
   @Post(':academyId/module-groups/:moduleGroupId/modules')
-  addModule(@Body() createModuleDto: CreateModuleDto) {
-    return this.academiesService.addModule(createModuleDto);
+  addModule(@Body() createModuleDto: CreateModuleDto, @Req() request: Request) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.academiesService.addModule(createModuleDto, accessToken);
   }
 
   @Post(':academyId/module-groups/:moduleGroupId/modules/:moduleId/images')
@@ -216,12 +225,24 @@ export class AcademiesController {
     @Param('moduleGroupId') moduleGroupId: string,
     @Param('moduleId') moduleId: string,
     @Body() updateModuleDto: UpdateModuleDto,
+    @Req() request: Request,
   ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
     return this.academiesService.updateModule(
       academyId,
       moduleGroupId,
       moduleId,
       updateModuleDto,
+      accessToken,
     );
   }
 
