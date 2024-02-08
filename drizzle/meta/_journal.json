@@ -239,6 +239,13 @@
       "when": 1707377812700,
       "tag": "0033_charming_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1707399246697,
+      "tag": "0034_wide_silver_fox",
+      "breakpoints": true
     }
   ]
 }

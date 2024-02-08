@@ -37,10 +37,17 @@ export const academies = pgTable('academies', {
   coverImageUrl: text('cover_image_url').default(''),
   isDeleted: boolean('is_deleted').default(false),
   deletedAt: varchar('deleted_at', { length: 50 }).default(null),
+  deletedBy: varchar('deleted_by', { length: 50 }).references(() => users.id, {
+    onDelete: 'cascade',
+  }),
 });
 
-export const academiesRelations = relations(academies, ({ many }) => ({
+export const academiesRelations = relations(academies, ({ many, one }) => ({
   moduleGroups: many(academyModuleGroups),
+  user: one(users, {
+    fields: [academies.deletedBy],
+    references: [users.id],
+  }),
 }));
 
 export const academyModuleGroups = pgTable('academy_module_groups', {
@@ -55,6 +62,9 @@ export const academyModuleGroups = pgTable('academy_module_groups', {
   isPublished: boolean('is_published').default(true),
   isDeleted: boolean('is_deleted').default(false),
   deletedAt: varchar('deleted_at', { length: 50 }).default(null),
+  deletedBy: varchar('deleted_by', { length: 50 }).references(() => users.id, {
+    onDelete: 'cascade',
+  }),
 });
 
 export const academyModuleGroupsRelations = relations(
@@ -65,6 +75,10 @@ export const academyModuleGroupsRelations = relations(
       references: [academies.id],
     }),
     modules: many(academyModules),
+    user: one(users, {
+      fields: [academyModuleGroups.deletedBy],
+      references: [users.id],
+    }),
   }),
 );
 
@@ -82,6 +96,9 @@ export const academyModules = pgTable('academy_modules', {
   isPublished: boolean('is_published').default(true),
   isDeleted: boolean('is_deleted').default(false),
   deletedAt: varchar('deleted_at', { length: 50 }).default(null),
+  deletedBy: varchar('deleted_by', { length: 50 }).references(() => users.id, {
+    onDelete: 'cascade',
+  }),
 });
 
 export const academyModulesRelations = relations(
@@ -92,6 +109,10 @@ export const academyModulesRelations = relations(
       references: [academyModuleGroups.id],
     }),
     discussions: many(moduleDiscussions),
+    user: one(users, {
+      fields: [academyModules.deletedBy],
+      references: [users.id],
+    }),
   }),
 );
 
