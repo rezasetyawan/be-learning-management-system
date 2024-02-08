@@ -26,6 +26,8 @@ import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
+import { AuditLogService } from 'src/audit-log/audit-log.service';
+import { ActionType, EntityType } from 'src/enums/audit-log.enum';
 
 @Injectable()
 export class AcademiesService {
@@ -33,15 +35,31 @@ export class AcademiesService {
     @Inject(PG_CONNECTION) private db: NodePgDatabase<typeof schema>,
     private readonly supabaseService: SupabaseService,
     private jwtService: JwtService,
+    private readonly auditLogsService: AuditLogService,
   ) {}
 
   // ACADEMIES
-  async create(createAcademyDto: CreateAcademyDto) {
+  async create(createAcademyDto: CreateAcademyDto, accessToken: string) {
     const academy = {
       id: nanoid(20),
       ...createAcademyDto,
     };
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
     await this.db.insert(schema.academies).values(academy);
+    await this.auditLogsService.create({
+      actionType: ActionType.CREATE,
+      entityName: academy.name,
+      entityType: EntityType.ACADEMY,
+      entityId: academy.id,
+      userId: user.sub as string,
+      createdAt: academy.createdAt,
+    });
     return {
       status: 'success',
       data: {
@@ -53,9 +71,31 @@ export class AcademiesService {
   async updateAcademy(
     academyId: string,
     updateAcademyDto: UpdateAcademyDto,
+    accessToken: string,
     academyCoverPicture?: Express.Multer.File,
   ) {
-    const { name, updatedAt, description, isPublished, isDeleted } =
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+
+    const academy = await this.db
+      .select({
+        id: schema.academies.id,
+        name: schema.academies.name,
+        isDeleted: schema.academies.isDeleted,
+      })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy.length) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const { name, updatedAt, description, isPublished, isDeleted, deletedAt } =
       updateAcademyDto;
 
     if (
@@ -94,16 +134,28 @@ export class AcademiesService {
         .where(eq(schema.academies.id, academyId));
     }
 
+    await this.auditLogsService.create({
+      actionType:
+        isDeleted === undefined
+          ? ActionType.UPDATE
+          : academy[0].isDeleted !== isDeleted
+            ? ActionType.DELETE
+            : ActionType.UPDATE,
+      entityName: academy[0].name,
+      entityType: EntityType.ACADEMY,
+      entityId: academyId,
+      userId: user.sub as string,
+      createdAt: deletedAt ? deletedAt : updateAcademyDto.updatedAt,
+    });
     return {
       status: 'success',
     };
   }
 
   async findAll() {
-    const data = await this.db.query.academies.findMany();
-    // {
-    //   where: (academies, { eq }) => eq(academies.isDeleted, false),
-    // }
+    const data = await this.db.query.academies.findMany({
+      where: (academies, { eq }) => eq(academies.isDeleted, false),
+    });
     return data;
   }
 

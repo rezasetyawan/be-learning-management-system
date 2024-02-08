@@ -9,6 +9,8 @@ import { ProfileModule } from './profile/profile.module';
 import { AcademiesModule } from './academies/academies.module';
 import { UserQuizzHistoriesModule } from './user-quizz-histories/user-quizz-histories.module';
 import { ModuleDiscussionsModule } from './module-discussions/module-discussions.module';
+import { AuditLogService } from './audit-log/audit-log.service';
+import { AuditLogModule } from './audit-log/audit-log.module';
 
 @Module({
   imports: [
@@ -20,8 +22,9 @@ import { ModuleDiscussionsModule } from './module-discussions/module-discussions
     AcademiesModule,
     UserQuizzHistoriesModule,
     ModuleDiscussionsModule,
+    AuditLogModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuditLogService],
 })
 export class AppModule {}

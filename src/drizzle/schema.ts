@@ -321,4 +321,23 @@ export const moduleDiscussionRepliesRelations = relations(
     }),
   }),
 );
+
+export const auditLogs = pgTable('audit_logs', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  entityId: varchar('entity_id', { length: 100 }).notNull(),
+  actionType: varchar('action_type', { length: 20 }),
+  entityType: text('entity_type'),
+  entityName: text('entity_name'),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+});
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [auditLogs.userId],
+    references: [users.id],
+  }),
+}));
 export type NewUser = typeof users.$inferInsert;

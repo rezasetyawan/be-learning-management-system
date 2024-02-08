@@ -225,6 +225,20 @@
       "when": 1707053150671,
       "tag": "0031_reflective_natasha_romanoff",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1707376651763,
+      "tag": "0032_magical_jack_power",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1707377812700,
+      "tag": "0033_charming_loners",
+      "breakpoints": true
     }
   ]
 }

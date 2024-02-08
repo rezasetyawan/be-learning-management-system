@@ -37,8 +37,18 @@ export class AcademiesController {
   // @UseGuards(RolesGuard)
   // @Roles(Role.Admin)
   @Post()
-  create(@Body() createAcademyDto: CreateAcademyDto) {
-    return this.academiesService.create(createAcademyDto);
+  create(@Body() createAcademyDto: CreateAcademyDto, @Req() request: Request) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.academiesService.create(createAcademyDto, accessToken);
   }
 
   @Patch(':academyId')
@@ -46,12 +56,23 @@ export class AcademiesController {
   updateAcademy(
     @Param('academyId') academyId: string,
     @Body() updateAcademyDto: UpdateAcademyDto,
+    @Req() request: Request,
     @UploadedFile()
     academyCoverPicture?: Express.Multer.File,
   ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
     return this.academiesService.updateAcademy(
       academyId,
       updateAcademyDto,
+      accessToken,
       academyCoverPicture,
     );
   }
