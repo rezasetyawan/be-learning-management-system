@@ -324,7 +324,7 @@ export class AcademiesService {
     await this.auditLogsService.create({
       actionType: ActionType.CREATE,
       entityName: moduleGroup.name,
-      entityType: EntityType.ACADEMY,
+      entityType: EntityType.MODULE_GROUP,
       entityId: moduleGroup.id,
       userId: user.sub as string,
       createdAt: moduleGroup.createdAt,
@@ -388,7 +388,7 @@ export class AcademiesService {
       entityName: updateModuleGroupDto.name
         ? updateModuleGroupDto.name
         : moduleGroup[0].name,
-      entityType: EntityType.ACADEMY,
+      entityType: EntityType.MODULE_GROUP,
       entityId: academyId,
       userId: user.sub as string,
       createdAt: updateModuleGroupDto.deletedAt
