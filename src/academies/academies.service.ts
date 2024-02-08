@@ -416,11 +416,28 @@ export class AcademiesService {
     const data = await this.db.query.academyModuleGroups.findMany({
       where: (modules, { and, eq }) =>
         and(eq(modules.academyId, academyId), eq(modules.isDeleted, isDeleted)),
+      with: {
+        user: {
+          columns: {
+            fullname: true,
+          },
+        },
+      },
+    });
+
+    const transformedData = data.map((item) => {
+      const moduleGroup = {
+        ...item,
+        deletedBy: item.user && item.user.fullname ? item.user.fullname : null,
+      };
+
+      delete moduleGroup.user;
+      return moduleGroup;
     });
 
     return {
       status: 'success',
-      data: data,
+      data: transformedData,
     };
   }
 
@@ -447,14 +464,36 @@ export class AcademiesService {
               },
               orderBy: (modules, { asc }) => [asc(modules.order)],
               where: (modules, { eq }) => eq(modules.isDeleted, isDeleted),
+              with: {
+                user: {
+                  columns: {
+                    fullname: true,
+                  },
+                },
+              },
             },
           },
         },
       },
     });
+
+    const transformedData = { ...data };
+    transformedData.moduleGroups = transformedData.moduleGroups.map((group) => {
+      const currentModuleGroup = { ...group };
+      currentModuleGroup.modules = currentModuleGroup.modules.map((module) => {
+        const currentModule = {
+          ...module,
+          deletedBy:
+            module.user && module.user.fullname ? module.user.fullname : null,
+        };
+        delete currentModule.user;
+        return currentModule;
+      });
+      return currentModuleGroup;
+    });
     return {
       status: 'success',
-      data: data,
+      data: transformedData,
     };
   }
   async addModulePicture(
