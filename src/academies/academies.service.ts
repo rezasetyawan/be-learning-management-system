@@ -315,6 +315,31 @@ export class AcademiesService {
     };
   }
 
+  async deleteAcademy(academyId: string, accessToken) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy.length) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    await this.db
+      .delete(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    return {
+      status: 'success',
+    };
+  }
+
   // MODULE GROUPS
   async addModuleGroup(
     createModuleGroupDto: CreateModuleGroupDto,

@@ -128,6 +128,21 @@ export class AcademiesController {
     );
   }
 
+  @Delete(':id')
+  deleteAcademy(@Param('id') id: string, @Req() request: Request) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.academiesService.deleteAcademy(id, accessToken);
+  }
+
   // MODULE GROUP
   @Post(':academyId/module-groups')
   addModuleGroup(
