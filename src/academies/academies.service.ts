@@ -732,6 +732,35 @@ export class AcademiesService {
     };
   }
 
+  async deleteModule(moduleId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const module = await this.db
+      .select({
+        id: schema.academyModules.id,
+        name: schema.academyModules.name,
+        isDeleted: schema.academyModules.isDeleted,
+      })
+      .from(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    if (!module.length) {
+      throw new NotFoundException('Module not found');
+    }
+
+    await this.db
+      .delete(schema.academyModules)
+      .where(eq(schema.academyModules.id, moduleId));
+
+    return {
+      status: 'success',
+    };
+  }
+
   // QUIZZES
 
   async getModuleQuizz(moduleId: string) {

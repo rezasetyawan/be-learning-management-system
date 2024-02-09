@@ -205,6 +205,24 @@ export class AcademiesController {
     return this.academiesService.getModules(academyId, isDeleted);
   }
 
+  @Delete(':academyId/module-groups/:moduleGroupId/modules/:moduleId')
+  deleteModule(
+    @Param('academyId') academyId: string,
+    @Param('moduleId') moduleId: string,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.academiesService.deleteModule(moduleId, accessToken);
+  }
+
   @Get(':academyId/module-groups/:moduleGroupId/modules/:moduleId')
   getModule(
     @Param('academyId') academyId: string,
