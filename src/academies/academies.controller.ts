@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -175,6 +176,24 @@ export class AcademiesController {
     @Query('isDeleted') isDeleted: boolean = false,
   ) {
     return this.academiesService.getModuleGroups(academyId, isDeleted);
+  }
+
+  @Delete(':academyId/module-groups/:moduleGroupId')
+  deleteModuleGroup(
+    @Param('academyId') academyId: string,
+    @Param('moduleGroupId') moduleGroupId: string,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.academiesService.deleteModuleGroup(moduleGroupId, accessToken);
   }
 
   // MODULES

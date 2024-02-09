@@ -447,6 +447,35 @@ export class AcademiesService {
     };
   }
 
+  async deleteModuleGroup(moduleGroupId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const moduleGroup = await this.db
+      .select({
+        id: schema.academyModuleGroups.id,
+        name: schema.academyModuleGroups.name,
+        isDeleted: schema.academyModuleGroups.isDeleted,
+      })
+      .from(schema.academyModuleGroups)
+      .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    if (!moduleGroup.length) {
+      throw new NotFoundException('Module group not found');
+    }
+
+    await this.db
+      .delete(schema.academyModuleGroups)
+      .where(eq(schema.academyModuleGroups.id, moduleGroupId));
+
+    return {
+      status: 'success',
+    };
+  }
+
   // MODULES
   async getModules(academyId: string, isDeleted: boolean) {
     const data = await this.db.query.academies.findFirst({
