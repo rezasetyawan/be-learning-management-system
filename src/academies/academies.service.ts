@@ -7,7 +7,7 @@ import {
 import { CreateAcademyDto } from './dto/create-academy.dto';
 // import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { JwtService } from '@nestjs/jwt';
-import { eq, sql } from 'drizzle-orm';
+import { eq, ilike, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { SupabaseService } from 'lib/supabase.service';
 import { nanoid } from 'nanoid';
@@ -162,9 +162,13 @@ export class AcademiesService {
     };
   }
 
-  async findAll() {
+  async findAll(isDeleted: boolean, searchKey: string = '') {
     const data = await this.db.query.academies.findMany({
-      where: (academies, { eq }) => eq(academies.isDeleted, false),
+      where: (academies, { and, eq }) =>
+        and(
+          eq(academies.isDeleted, isDeleted),
+          ilike(academies.name, `%${searchKey}%`),
+        ),
     });
     return data;
   }

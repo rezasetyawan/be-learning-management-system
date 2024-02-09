@@ -79,8 +79,11 @@ export class AcademiesController {
   }
 
   @Get()
-  findAll() {
-    return this.academiesService.findAll();
+  findAll(
+    @Query('isDeleted') isDeleted: boolean = false,
+    @Query('search') search: string | undefined,
+  ) {
+    return this.academiesService.findAll(isDeleted, search);
   }
 
   @Get(':id')
