@@ -512,23 +512,23 @@ export class AcademiesService {
       },
     });
 
-    const transformedData = { ...data };
-    transformedData.moduleGroups = transformedData.moduleGroups.map((group) => {
-      const currentModuleGroup = { ...group };
-      currentModuleGroup.modules = currentModuleGroup.modules.map((module) => {
+    const currentModules = [];
+
+    data.moduleGroups.forEach((group) => {
+      group.modules.forEach((module) => {
         const currentModule = {
           ...module,
           deletedBy:
             module.user && module.user.fullname ? module.user.fullname : null,
+          moduleGroupName: group.name,
         };
         delete currentModule.user;
-        return currentModule;
+        currentModules.push(currentModule);
       });
-      return currentModuleGroup;
     });
     return {
       status: 'success',
-      data: transformedData,
+      data: [...currentModules],
     };
   }
   async addModulePicture(
