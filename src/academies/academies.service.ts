@@ -521,6 +521,7 @@ export class AcademiesService {
           deletedBy:
             module.user && module.user.fullname ? module.user.fullname : null,
           moduleGroupName: group.name,
+          moduleGroupId: group.id,
         };
         delete currentModule.user;
         currentModules.push(currentModule);
