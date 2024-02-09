@@ -108,7 +108,10 @@ export class AcademiesService {
       const payload = {
         ...updateAcademyDto,
         ...(isDeleted && { deletedBy: user.sub as string }),
-        ...(isDeleted === false && { deletedBy: null }),
+        ...(isDeleted === false && {
+          deletedBy: null,
+          deletedAt: null,
+        }),
       };
       await this.db
         .update(schema.academies)
@@ -381,7 +384,10 @@ export class AcademiesService {
     const payload = {
       ...updateModuleGroupDto,
       ...(updateModuleGroupDto.isDeleted && { deletedBy: user.sub as string }),
-      ...(updateModuleGroupDto.isDeleted === false && { deletedBy: null }),
+      ...(updateModuleGroupDto.isDeleted === false && {
+        deletedBy: null,
+        deletedAt: null,
+      }),
     };
 
     await this.db
@@ -664,7 +670,10 @@ export class AcademiesService {
     const payload = {
       ...updateModuleDto,
       ...(updateModuleDto.isDeleted && { deletedBy: user.sub as string }),
-      ...(updateModuleDto.isDeleted === false && { deletedBy: null }),
+      ...(updateModuleDto.isDeleted === false && {
+        deletedBy: null,
+        deletedAt: null,
+      }),
     };
 
     await this.db
