@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -39,6 +40,27 @@ export class UserSubmissionsController {
 
     return this.userSubmissionsService.getUserSubmissionsByAcademyId(
       academyId,
+      accessToken,
+    );
+  }
+
+  @Get(':submissionId')
+  findOne(
+    @Param('submissionId') submissionId: string,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.userSubmissionsService.getUserSubmissionById(
+      submissionId,
       accessToken,
     );
   }

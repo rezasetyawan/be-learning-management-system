@@ -120,4 +120,52 @@ export class UserSubmissionsService {
       data,
     };
   }
+
+  async getUserSubmissionById(submissionId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const userRole = await this.usersService.getRole(user.username as string);
+
+    const data = await this.db
+      .select()
+      .from(schema.userSubmissions)
+      .where(eq(schema.userSubmissions.id, submissionId))
+      .leftJoin(
+        schema.userSubmissionResults,
+        eq(
+          schema.userSubmissions.id,
+          schema.userSubmissionResults.submissionId,
+        ),
+      );
+
+    if (!data.length) {
+      throw new NotFoundException('Submission not found');
+    }
+
+    const transformedData = {
+      ...data[0].user_submissions,
+      result: data[0].user_submission_results
+        ? { ...data[0].user_submission_results }
+        : null,
+    };
+    if (userRole.role === 'admin') {
+      return {
+        status: 'success',
+        data: transformedData,
+      };
+    }
+
+    if (user.sub !== data[0].user_submissions.userId) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return {
+      status: 'success',
+      data: transformedData,
+    };
+  }
 }
