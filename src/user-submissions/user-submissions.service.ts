@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import { eq } from 'drizzle-orm';
 import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
 import { nanoid } from 'nanoid';
 import { UsersService } from 'src/users/users.service';
+import { UpdateUserSubmissionDto } from './dto/update-user-submission.do';
 
 @Injectable()
 export class UserSubmissionsService {
@@ -166,6 +168,51 @@ export class UserSubmissionsService {
     return {
       status: 'success',
       data: transformedData,
+    };
+  }
+
+  async updateUserSubmission(
+    submissionId: string,
+    updateUserSubmissionDto: UpdateUserSubmissionDto,
+    accessToken: string,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const userRole = await this.usersService.getRole(user.username as string);
+
+    const submissions = await this.db
+      .select()
+      .from(schema.userSubmissions)
+      .where(eq(schema.userSubmissions.id, submissionId));
+
+    if (!submissions.length) {
+      throw new NotFoundException('Submission not found');
+    }
+
+    if (
+      updateUserSubmissionDto.status !== 'PENDING' &&
+      updateUserSubmissionDto.status !== 'REVIEW' &&
+      updateUserSubmissionDto.status !== 'REVIEWED'
+    ) {
+      throw new BadRequestException('Status property not valid');
+    }
+
+    if (userRole.role !== 'admin') {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    await this.db
+      .update(schema.userSubmissions)
+      .set(updateUserSubmissionDto)
+      .where(eq(schema.userSubmissions.id, submissionId));
+
+    return {
+      status: 'success',
     };
   }
 }

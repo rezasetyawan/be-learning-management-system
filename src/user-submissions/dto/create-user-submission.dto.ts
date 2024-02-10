@@ -8,4 +8,5 @@ export class CreateUserSubmissionDto {
   note: string;
   @IsNotEmpty()
   academyId: string;
+  status?: 'PENDING' | 'REVIEW' | 'REVIEWED';
 }
