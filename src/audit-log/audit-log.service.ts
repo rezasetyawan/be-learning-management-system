@@ -4,6 +4,7 @@ import { PG_CONNECTION } from 'src/constants';
 import * as schema from '../drizzle/schema';
 import { ActionType, EntityType } from 'src/enums/audit-log.enum';
 import { nanoid } from 'nanoid';
+import { eq } from 'drizzle-orm';
 
 interface CreateProps {
   entityType: EntityType;
@@ -41,5 +42,30 @@ export class AuditLogService {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  async getEntityLogs(entityId: string, entitiyType: string) {
+    try {
+      const data = await this.db.query.auditLogs.findMany({
+        where: (auditLogs, { and }) =>
+          and(
+            eq(auditLogs.entityId, entityId),
+            eq(auditLogs.entityType, entitiyType),
+          ),
+
+        with: {
+          user: {
+            columns: {
+              fullname: true,
+            },
+          },
+        },
+      });
+
+      return {
+        status: 'success',
+        data,
+      };
+    } catch (error) {}
   }
 }
