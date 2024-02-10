@@ -435,7 +435,7 @@ export class AcademiesService {
         ? updateModuleGroupDto.name
         : moduleGroup[0].name,
       entityType: EntityType.MODULE_GROUP,
-      entityId: academyId,
+      entityId: moduleGroupId,
       userId: user.sub as string,
       createdAt: updateModuleGroupDto.deletedAt
         ? updateModuleGroupDto.deletedAt
