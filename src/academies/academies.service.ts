@@ -773,7 +773,7 @@ export class AcademiesService {
             : ActionType.DELETE,
       entityName: updateModuleDto.name ? updateModuleDto.name : module[0].name,
       entityType: EntityType.MODULE,
-      entityId: academyId,
+      entityId: moduleId,
       userId: user.sub as string,
       createdAt: updateModuleDto.deletedAt
         ? updateModuleDto.deletedAt

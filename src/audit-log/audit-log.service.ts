@@ -44,13 +44,13 @@ export class AuditLogService {
     }
   }
 
-  async getEntityLogs(entityId: string, entitiyType: string) {
+  async getEntityLogs(entityId: string, entityType: string) {
     try {
       const data = await this.db.query.auditLogs.findMany({
         where: (auditLogs, { and }) =>
           and(
             eq(auditLogs.entityId, entityId),
-            eq(auditLogs.entityType, entitiyType),
+            eq(auditLogs.entityType, entityType),
           ),
 
         with: {
