@@ -1,7 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UploadedFile,
@@ -17,6 +20,28 @@ export class UserSubmissionsController {
   constructor(
     private readonly userSubmissionsService: UserSubmissionsService,
   ) {}
+
+  @Get()
+  getAll(@Query('academyId') academyId: string, @Req() request: Request) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    if (!academyId) {
+      throw new BadRequestException('Please provide academyId query parameter');
+    }
+
+    return this.userSubmissionsService.getUserSubmissionsByAcademyId(
+      academyId,
+      accessToken,
+    );
+  }
 
   @Post()
   @UseInterceptors(FileInterceptor('submissionFile'))

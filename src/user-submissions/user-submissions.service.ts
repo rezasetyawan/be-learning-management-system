@@ -13,6 +13,7 @@ import { CreateUserSubmissionDto } from './dto/create-user-submission.dto';
 import { eq } from 'drizzle-orm';
 import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
 import { nanoid } from 'nanoid';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class UserSubmissionsService {
@@ -20,6 +21,7 @@ export class UserSubmissionsService {
     @Inject(PG_CONNECTION) private db: NodePgDatabase<typeof schema>,
     private readonly supabaseService: SupabaseService,
     private jwtService: JwtService,
+    private usersService: UsersService,
   ) {}
 
   async createUserSubmission(
@@ -77,6 +79,45 @@ export class UserSubmissionsService {
 
     return {
       status: 'success',
+    };
+  }
+
+  async getUserSubmissionsByAcademyId(academyId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+    const userRole = await this.usersService.getRole(user.username as string);
+
+    const academy = await this.db
+      .select({
+        id: schema.academies.id,
+        name: schema.academies.name,
+        isDeleted: schema.academies.isDeleted,
+      })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy.length) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const data = await this.db.query.userSubmissions.findMany({
+      where: (userSubmissions, { and, eq }) =>
+        userRole.role === 'admin'
+          ? eq(userSubmissions.academyId, academyId)
+          : and(
+              eq(userSubmissions.academyId, academyId),
+              eq(userSubmissions.userId, user.sub),
+            ),
+    });
+
+    return {
+      status: 'success',
+      data,
     };
   }
 }
