@@ -11,6 +11,7 @@ import { UserQuizzHistoriesModule } from './user-quizz-histories/user-quizz-hist
 import { ModuleDiscussionsModule } from './module-discussions/module-discussions.module';
 import { AuditLogService } from './audit-log/audit-log.service';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { UserSubmissionsModule } from './user-submissions/user-submissions.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     UserQuizzHistoriesModule,
     ModuleDiscussionsModule,
     AuditLogModule,
+    UserSubmissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuditLogService],
