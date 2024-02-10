@@ -17,6 +17,7 @@ import { CreateUserSubmissionDto } from './dto/create-user-submission.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { UpdateUserSubmissionDto } from './dto/update-user-submission.do';
+import { CreateUserSubmissionResultDto } from './dto/create-user-submission-result.dto';
 
 @Controller('user-submissions')
 export class UserSubmissionsController {
@@ -110,6 +111,29 @@ export class UserSubmissionsController {
     return this.userSubmissionsService.updateUserSubmission(
       submissionId,
       updateUserSubmissionDto,
+      accessToken,
+    );
+  }
+
+  @Post(':submissionId/result')
+  addResult(
+    @Param('submissionId') submissionId: string,
+    @Body() createUserSubmissionResultDto: CreateUserSubmissionResultDto,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.userSubmissionsService.createSubmissionResult(
+      submissionId,
+      createUserSubmissionResultDto,
       accessToken,
     );
   }
