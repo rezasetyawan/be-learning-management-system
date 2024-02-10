@@ -505,6 +505,30 @@ export class AcademiesService {
     };
   }
 
+  async getModuleGroup(academyId: string, modulegGroupId: string) {
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy.length) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const moduleGroup = await this.db
+      .select()
+      .from(schema.academyModuleGroups)
+      .where(eq(schema.academyModuleGroups.id, modulegGroupId));
+
+    if (!moduleGroup.length) {
+      throw new NotFoundException('Module group not found');
+    }
+
+    return {
+      status: 'success',
+      data: { ...moduleGroup[0] },
+    };
+  }
   // MODULES
   async getModules(academyId: string, isDeleted: boolean) {
     const data = await this.db.query.academies.findFirst({

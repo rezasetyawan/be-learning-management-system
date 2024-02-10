@@ -188,6 +188,25 @@ export class AcademiesController {
     );
   }
 
+  @Get(':academyId/module-groups/:moduleGroupId')
+  getModuleGroup(
+    @Param('academyId') academyId: string,
+    @Param('moduleGroupId') moduleGroupId: string,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    return this.academiesService.getModuleGroup(academyId, moduleGroupId);
+  }
+
   @Get(':academyId/module-groups')
   getModuleGroups(
     @Param('academyId') academyId: string,
