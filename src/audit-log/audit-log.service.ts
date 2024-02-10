@@ -60,6 +60,7 @@ export class AuditLogService {
             },
           },
         },
+        orderBy: (auditLogs, { desc }) => [desc(auditLogs.createdAt)],
       });
 
       return {
