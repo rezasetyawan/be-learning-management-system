@@ -146,9 +146,9 @@ export class AcademiesService {
       actionType:
         isDeleted === undefined
           ? ActionType.UPDATE
-          : academy[0].isDeleted !== isDeleted
-            ? ActionType.DELETE
-            : ActionType.UPDATE,
+          : !isDeleted
+            ? ActionType.UPDATE
+            : ActionType.DELETE,
       entityName: updateAcademyDto.name
         ? updateAcademyDto.name
         : academy[0].name,
@@ -428,7 +428,7 @@ export class AcademiesService {
       actionType:
         updateModuleGroupDto.isDeleted === undefined
           ? ActionType.UPDATE
-          : moduleGroup[0].isDeleted !== updateModuleGroupDto.isDeleted
+          : !updateModuleGroupDto.isDeleted
             ? ActionType.DELETE
             : ActionType.UPDATE,
       entityName: updateModuleGroupDto.name
@@ -768,9 +768,9 @@ export class AcademiesService {
       actionType:
         updateModuleDto.isDeleted === undefined
           ? ActionType.UPDATE
-          : module[0].isDeleted !== updateModuleDto.isDeleted
-            ? ActionType.DELETE
-            : ActionType.UPDATE,
+          : !updateModuleDto.isDeleted
+            ? ActionType.UPDATE
+            : ActionType.DELETE,
       entityName: updateModuleDto.name ? updateModuleDto.name : module[0].name,
       entityType: EntityType.MODULE,
       entityId: academyId,
