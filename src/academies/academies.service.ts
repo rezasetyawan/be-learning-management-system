@@ -429,8 +429,8 @@ export class AcademiesService {
         updateModuleGroupDto.isDeleted === undefined
           ? ActionType.UPDATE
           : !updateModuleGroupDto.isDeleted
-            ? ActionType.DELETE
-            : ActionType.UPDATE,
+            ? ActionType.UPDATE
+            : ActionType.DELETE,
       entityName: updateModuleGroupDto.name
         ? updateModuleGroupDto.name
         : moduleGroup[0].name,
