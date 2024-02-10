@@ -14,6 +14,12 @@ export const academyModuleTypesEnum = pgEnum('module_types', [
   'SUBMISSION',
 ]);
 
+export const userSubmissionStatus = pgEnum('submisssion_status', [
+  'PENDING',
+  'REVIEW',
+  'REVIEWED',
+]);
+
 export const users = pgTable('users', {
   id: varchar('id', { length: 50 }).primaryKey(),
   fullname: text('full_name').notNull(),
@@ -376,6 +382,7 @@ export const userSubmissions = pgTable('user_submissions', {
     .references(() => academyModules.id, { onDelete: 'cascade' })
     .notNull(),
   fileUrl: text('file_url'),
+  status: userSubmissionStatus('status').notNull().default('PENDING'),
 });
 
 export const userSubmissionsRelations = relations(
