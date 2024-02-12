@@ -163,6 +163,7 @@ export class UserSubmissionsService {
         },
         moduleName: schema.academyModules.name,
         moduleId: schema.academyModules.id,
+        moduleGroupId: schema.academyModules.academyModuleGroupId,
         result: schema.userSubmissionResults,
       })
       .from(schema.userSubmissions)
