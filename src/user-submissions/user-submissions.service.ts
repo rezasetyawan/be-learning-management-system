@@ -117,6 +117,19 @@ export class UserSubmissionsService {
               eq(userSubmissions.academyId, academyId),
               eq(userSubmissions.userId, user.sub),
             ),
+      with: {
+        user: {
+          columns: {
+            fullname: true,
+          },
+        },
+        module: {
+          columns: {
+            name: true,
+            id: true,
+          },
+        },
+      },
     });
 
     return {
@@ -136,7 +149,22 @@ export class UserSubmissionsService {
     const userRole = await this.usersService.getRole(user.username as string);
 
     const data = await this.db
-      .select()
+      .select({
+        id: schema.userSubmissions.id,
+        createdAt: schema.userSubmissions.createdAt,
+        note: schema.userSubmissions.note,
+        fileUrl: schema.userSubmissions.fileUrl,
+        status: schema.userSubmissions.status,
+        academyId: schema.userSubmissions.academyId,
+        academyName: schema.academies.name,
+        user: {
+          id: schema.users.id,
+          fullname: schema.users.fullname,
+        },
+        moduleName: schema.academyModules.name,
+        moduleId: schema.academyModules.id,
+        result: schema.userSubmissionResults,
+      })
       .from(schema.userSubmissions)
       .where(eq(schema.userSubmissions.id, submissionId))
       .leftJoin(
@@ -145,31 +173,37 @@ export class UserSubmissionsService {
           schema.userSubmissions.id,
           schema.userSubmissionResults.submissionId,
         ),
+      )
+      .rightJoin(
+        schema.users,
+        eq(schema.userSubmissions.userId, schema.users.id),
+      )
+      .rightJoin(
+        schema.academyModules,
+        eq(schema.userSubmissions.moduleId, schema.academyModules.id),
+      )
+      .rightJoin(
+        schema.academies,
+        eq(schema.userSubmissions.academyId, schema.academies.id),
       );
 
     if (!data.length) {
       throw new NotFoundException('Submission not found');
     }
 
-    const transformedData = {
-      ...data[0].user_submissions,
-      result: data[0].user_submission_results
-        ? { ...data[0].user_submission_results }
-        : null,
-    };
     if (userRole.role === 'admin') {
       return {
         status: 'success',
-        data: transformedData,
+        data: data[0],
       };
     }
 
-    if (user.sub !== data[0].user_submissions.userId) {
+    if (user.sub !== data[0].user.id) {
       throw new UnauthorizedException('Unauthorized');
     }
     return {
       status: 'success',
-      data: transformedData,
+      data: data[0],
     };
   }
 
