@@ -148,63 +148,105 @@ export class UserSubmissionsService {
     const user = this.jwtService.decode(accessToken);
     const userRole = await this.usersService.getRole(user.username as string);
 
-    const data = await this.db
-      .select({
-        id: schema.userSubmissions.id,
-        createdAt: schema.userSubmissions.createdAt,
-        note: schema.userSubmissions.note,
-        fileUrl: schema.userSubmissions.fileUrl,
-        status: schema.userSubmissions.status,
-        academyId: schema.userSubmissions.academyId,
-        academyName: schema.academies.name,
-        user: {
-          id: schema.users.id,
-          fullname: schema.users.fullname,
-        },
-        moduleName: schema.academyModules.name,
-        moduleId: schema.academyModules.id,
-        moduleGroupId: schema.academyModules.academyModuleGroupId,
-        result: schema.userSubmissionResults,
-      })
-      .from(schema.userSubmissions)
-      .where(eq(schema.userSubmissions.id, submissionId))
-      .leftJoin(
-        schema.userSubmissionResults,
-        eq(
-          schema.userSubmissions.id,
-          schema.userSubmissionResults.submissionId,
-        ),
-      )
-      .rightJoin(
-        schema.users,
-        eq(schema.userSubmissions.userId, schema.users.id),
-      )
-      .rightJoin(
-        schema.academyModules,
-        eq(schema.userSubmissions.moduleId, schema.academyModules.id),
-      )
-      .rightJoin(
-        schema.academies,
-        eq(schema.userSubmissions.academyId, schema.academies.id),
-      );
+    // const data = await this.db
+    //   .select({
+    //     id: schema.userSubmissions.id,
+    //     createdAt: schema.userSubmissions.createdAt,
+    //     note: schema.userSubmissions.note,
+    //     fileUrl: schema.userSubmissions.fileUrl,
+    //     status: schema.userSubmissions.status,
+    //     academyId: schema.userSubmissions.academyId,
+    //     academyName: schema.academies.name,
+    //     user: {
+    //       id: schema.users.id,
+    //       fullname: schema.users.fullname,
+    //     },
+    //     moduleName: schema.academyModules.name,
+    //     moduleId: schema.academyModules.id,
+    //     moduleGroupId: schema.academyModules.academyModuleGroupId,
+    //     result: schema.userSubmissionResults,
+    //   })
+    //   .from(schema.userSubmissions)
+    //   .where(eq(schema.userSubmissions.id, submissionId))
+    //   .leftJoin(
+    //     schema.userSubmissionResults,
+    //     eq(
+    //       schema.userSubmissions.id,
+    //       schema.userSubmissionResults.submissionId,
+    //     ),
+    //   )
+    //   .rightJoin(
+    //     schema.users,
+    //     eq(schema.userSubmissions.userId, schema.users.id),
+    //   )
+    //   .rightJoin(
+    //     schema.academyModules,
+    //     eq(schema.userSubmissions.moduleId, schema.academyModules.id),
+    //   )
+    //   .rightJoin(
+    //     schema.academies,
+    //     eq(schema.userSubmissions.academyId, schema.academies.id),
+    //   );
 
-    if (!data.length) {
+    const data = await this.db.query.userSubmissions.findFirst({
+      where: (submissions, { eq }) => eq(submissions.id, submissionId),
+      with: {
+        result: {
+          with: {
+            reviewer: {
+              columns: {
+                fullname: true,
+                username: true,
+              },
+            },
+          },
+        },
+        module: {
+          columns: {
+            name: true,
+            id: true,
+          },
+          with: {
+            group: {
+              columns: {
+                id: true,
+              },
+            },
+          },
+        },
+        academy: {
+          columns: {
+            name: true,
+            id: true,
+          },
+        },
+        user: {
+          columns: {
+            fullname: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!data) {
       throw new NotFoundException('Submission not found');
     }
 
     if (userRole.role === 'admin') {
       return {
         status: 'success',
-        data: data[0],
+        data: data,
       };
     }
 
-    if (user.sub !== data[0].user.id) {
+    if (user.sub !== data.userId) {
       throw new UnauthorizedException('Unauthorized');
     }
+
     return {
       status: 'success',
-      data: data[0],
+      data: data,
     };
   }
 

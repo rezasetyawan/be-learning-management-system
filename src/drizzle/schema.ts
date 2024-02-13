@@ -387,7 +387,7 @@ export const userSubmissions = pgTable('user_submissions', {
 
 export const userSubmissionsRelations = relations(
   userSubmissions,
-  ({ one }) => ({
+  ({ one, many }) => ({
     user: one(users, {
       fields: [userSubmissions.userId],
       references: [users.id],
@@ -400,6 +400,7 @@ export const userSubmissionsRelations = relations(
       fields: [userSubmissions.moduleId],
       references: [academyModules.id],
     }),
+    result: many(userSubmissionResults),
   }),
 );
 
