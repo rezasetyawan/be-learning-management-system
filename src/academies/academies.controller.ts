@@ -265,8 +265,23 @@ export class AcademiesController {
     @Param('academyId') academyId: string,
     @Param('moduleGroupId') moduleGroupId: string,
     @Param('moduleId') moduleId: string,
+    @Req() request: Request,
   ) {
-    return this.academiesService.getModule(academyId, moduleGroupId, moduleId);
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    return this.academiesService.getModule(
+      academyId,
+      moduleGroupId,
+      moduleId,
+      accessToken,
+    );
   }
 
   @Post(':academyId/module-groups/:moduleGroupId/modules')
