@@ -111,7 +111,7 @@ export class UserSubmissionsService {
 
     const data = await this.db.query.userSubmissions.findMany({
       where: (userSubmissions, { and, eq }) =>
-        userRole.role === 'admin'
+        userRole.role === 'admin' || userRole.role === 'superadmin'
           ? eq(userSubmissions.academyId, academyId)
           : and(
               eq(userSubmissions.academyId, academyId),
@@ -251,7 +251,7 @@ export class UserSubmissionsService {
         (item) => item.id === data.id,
       ) + 1;
 
-    if (userRole.role === 'admin') {
+    if (userRole.role === 'admin' || userRole.role === 'superadmin') {
       return {
         status: 'success',
         data: {
@@ -306,7 +306,7 @@ export class UserSubmissionsService {
       throw new BadRequestException('Status property not valid');
     }
 
-    if (userRole.role !== 'admin') {
+    if (userRole.role === 'admin' || userRole.role === 'superadmin') {
       throw new UnauthorizedException('Unauthorized');
     }
 
@@ -354,7 +354,7 @@ export class UserSubmissionsService {
       throw new ConflictException('Sorry, the submission already reviewed');
     }
 
-    if (userRole.role !== 'admin') {
+    if (userRole.role === 'admin' || userRole.role === 'superadmin') {
       throw new UnauthorizedException('Unauthorized');
     }
 
