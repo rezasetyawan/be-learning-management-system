@@ -11,7 +11,9 @@ describe('UserSubmissionsController', () => {
       providers: [UserSubmissionsService],
     }).compile();
 
-    controller = module.get<UserSubmissionsController>(UserSubmissionsController);
+    controller = module.get<UserSubmissionsController>(
+      UserSubmissionsController,
+    );
   });
 
   it('should be defined', () => {

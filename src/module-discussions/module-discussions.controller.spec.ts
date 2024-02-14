@@ -11,7 +11,9 @@ describe('ModuleDiscussionsController', () => {
       providers: [ModuleDiscussionsService],
     }).compile();
 
-    controller = module.get<ModuleDiscussionsController>(ModuleDiscussionsController);
+    controller = module.get<ModuleDiscussionsController>(
+      ModuleDiscussionsController,
+    );
   });
 
   it('should be defined', () => {

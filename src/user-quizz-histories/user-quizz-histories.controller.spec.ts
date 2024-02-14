@@ -11,7 +11,9 @@ describe('UserQuizzHistoriesController', () => {
       providers: [UserQuizzHistoriesService],
     }).compile();
 
-    controller = module.get<UserQuizzHistoriesController>(UserQuizzHistoriesController);
+    controller = module.get<UserQuizzHistoriesController>(
+      UserQuizzHistoriesController,
+    );
   });
 
   it('should be defined', () => {
