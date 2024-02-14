@@ -606,7 +606,20 @@ export class AcademiesService {
     }
   }
 
-  async getModule(academyId: string, moduleGroupId: string, moduleId: string) {
+  async getModule(
+    academyId: string,
+    moduleGroupId: string,
+    moduleId: string,
+    accessToken: string,
+  ) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+
     const academy = await this.db
       .select({ id: schema.academies.id })
       .from(schema.academies)
@@ -637,11 +650,64 @@ export class AcademiesService {
       throw new NotFoundException('Module not found');
     }
 
-    if (module.type === 'LESSON' || module.type === 'SUBMISSION') {
+    if (module.type === 'LESSON') {
       return {
         status: 'success',
         data: module,
       };
+    }
+
+    if (module.type === 'SUBMISSION') {
+      const userSubmissions = await this.db.query.userSubmissions.findMany({
+        where: (submissions, { eq, and }) =>
+          and(
+            eq(submissions.moduleId, moduleId),
+            eq(submissions.userId, user.sub as string),
+          ),
+        orderBy: (submissions, { desc }) => [desc(submissions.createdAt)],
+        with: {
+          result: {
+            columns: {
+              isPassed: true,
+            },
+          },
+        },
+      });
+
+      if (userSubmissions.length) {
+        const allActiveSubmissionsInCurrentModule =
+          await this.db.query.userSubmissions.findMany({
+            where: (submissions, { eq, and }) =>
+              and(
+                eq(submissions.moduleId, moduleId),
+                eq(submissions.status, 'PENDING'),
+              ),
+            columns: {
+              id: true,
+            },
+            orderBy: (submissions, { asc }) => [asc(submissions.createdAt)],
+          });
+
+        const userSubmissionWaitingOrder =
+          allActiveSubmissionsInCurrentModule.findIndex(
+            (item) => item.id === userSubmissions[0].id,
+          ) + 1;
+        return {
+          status: 'success',
+          data: {
+            ...module,
+            submission: userSubmissions.length
+              ? {
+                  ...userSubmissions[0],
+                  waitingOrder:
+                    userSubmissions[0].status === 'REVIEW'
+                      ? 0
+                      : userSubmissionWaitingOrder,
+                }
+              : null,
+          },
+        };
+      }
     }
 
     if (module.type === 'QUIZZ') {

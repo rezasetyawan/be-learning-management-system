@@ -14,6 +14,12 @@ export const academyModuleTypesEnum = pgEnum('module_types', [
   'SUBMISSION',
 ]);
 
+export const userSubmissionStatus = pgEnum('submisssion_status', [
+  'PENDING',
+  'REVIEW',
+  'REVIEWED',
+]);
+
 export const users = pgTable('users', {
   id: varchar('id', { length: 50 }).primaryKey(),
   fullname: text('full_name').notNull(),
@@ -361,4 +367,69 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const userSubmissions = pgTable('user_submissions', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  note: text('note'),
+  academyId: varchar('academy_id', { length: 50 })
+    .references(() => academies.id, { onDelete: 'cascade' })
+    .notNull(),
+  moduleId: varchar('module_id', { length: 50 })
+    .references(() => academyModules.id, { onDelete: 'cascade' })
+    .notNull(),
+  fileUrl: text('file_url'),
+  status: userSubmissionStatus('status').notNull().default('PENDING'),
+});
+
+export const userSubmissionsRelations = relations(
+  userSubmissions,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [userSubmissions.userId],
+      references: [users.id],
+    }),
+    academy: one(academies, {
+      fields: [userSubmissions.academyId],
+      references: [academies.id],
+    }),
+    module: one(academyModules, {
+      fields: [userSubmissions.moduleId],
+      references: [academyModules.id],
+    }),
+    result: many(userSubmissionResults),
+  }),
+);
+
+export const userSubmissionResults = pgTable('user_submission_results', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  reviewer: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  reviewerNote: text('reviewer_note'),
+  score: smallserial('score'),
+  isPassed: boolean('is_passed'),
+  submissionId: varchar('submission_ID', { length: 50 })
+    .references(() => userSubmissions.id, { onDelete: 'cascade' })
+    .notNull(),
+});
+
+export const userSubmissionResultsRelations = relations(
+  userSubmissionResults,
+  ({ one }) => ({
+    reviewer: one(users, {
+      fields: [userSubmissionResults.reviewer],
+      references: [users.id],
+    }),
+    submission: one(userSubmissions, {
+      fields: [userSubmissionResults.submissionId],
+      references: [userSubmissions.id],
+    }),
+  }),
+);
+
 export type NewUser = typeof users.$inferInsert;
