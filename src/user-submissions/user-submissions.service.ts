@@ -233,10 +233,32 @@ export class UserSubmissionsService {
       throw new NotFoundException('Submission not found');
     }
 
+    const allActiveSubmissionsInCurrentModule =
+      await this.db.query.userSubmissions.findMany({
+        where: (submissions, { eq, and }) =>
+          and(
+            eq(submissions.moduleId, data.moduleId),
+            eq(submissions.status, 'PENDING'),
+          ),
+        columns: {
+          id: true,
+        },
+        orderBy: (submissions, { asc }) => [asc(submissions.createdAt)],
+      });
+
+    const userSubmissionWaitingOrder =
+      allActiveSubmissionsInCurrentModule.findIndex(
+        (item) => item.id === data.id,
+      ) + 1;
+
     if (userRole.role === 'admin') {
       return {
         status: 'success',
-        data: data,
+        data: {
+          ...data,
+          waitingOrder:
+            data.status === 'REVIEW' ? 0 : userSubmissionWaitingOrder,
+        },
       };
     }
 
@@ -246,7 +268,10 @@ export class UserSubmissionsService {
 
     return {
       status: 'success',
-      data: data,
+      data: {
+        ...data,
+        waitingOrder: data.status === 'REVIEW' ? 0 : userSubmissionWaitingOrder,
+      },
     };
   }
 
