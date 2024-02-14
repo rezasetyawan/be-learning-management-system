@@ -674,13 +674,40 @@ export class AcademiesService {
         },
       });
 
-      return {
-        status: 'success',
-        data: {
-          ...module,
-          submission: userSubmissions.length ? userSubmissions[0] : null,
-        },
-      };
+      if (userSubmissions.length) {
+        const allActiveSubmissionsInCurrentModule =
+          await this.db.query.userSubmissions.findMany({
+            where: (submissions, { eq, and }) =>
+              and(
+                eq(submissions.moduleId, moduleId),
+                eq(submissions.status, 'PENDING'),
+              ),
+            columns: {
+              id: true,
+            },
+            orderBy: (submissions, { asc }) => [asc(submissions.createdAt)],
+          });
+
+        const userSubmissionWaitingOrder =
+          allActiveSubmissionsInCurrentModule.findIndex(
+            (item) => item.id === userSubmissions[0].id,
+          ) + 1;
+        return {
+          status: 'success',
+          data: {
+            ...module,
+            submission: userSubmissions.length
+              ? {
+                  ...userSubmissions[0],
+                  waitingOrder:
+                    userSubmissions[0].status === 'REVIEW'
+                      ? 0
+                      : userSubmissionWaitingOrder,
+                }
+              : null,
+          },
+        };
+      }
     }
 
     if (module.type === 'QUIZZ') {
