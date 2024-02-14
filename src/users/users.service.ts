@@ -38,7 +38,9 @@ export class UsersService {
   }
 
   async findAll() {
-    const data = await this.db.query.users.findMany();
+    const data = await this.db.query.users.findMany({
+      orderBy: (users, { desc }) => [desc(users.createdAt)],
+    });
 
     return {
       status: 'success',
