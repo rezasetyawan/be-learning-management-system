@@ -38,7 +38,12 @@ export class UsersService {
   }
 
   async findAll() {
-    return 'This action returns a users';
+    const data = await this.db.query.users.findMany();
+
+    return {
+      status: 'success',
+      data,
+    };
   }
 
   async findOne(username: string) {

@@ -8,7 +8,7 @@ import { Role } from 'src/enums/role.enum';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @UseGuards(RolesGuard)
-  @Roles(Role.Admin, Role.SuperAdmin)
+  @Roles(Role.SuperAdmin)
   @Get()
   findAll() {
     return this.usersService.findAll();
