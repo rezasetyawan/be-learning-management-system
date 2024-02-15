@@ -11,8 +11,8 @@ import { eq, ilike, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { SupabaseService } from 'lib/supabase.service';
 import { nanoid } from 'nanoid';
-import { PG_CONNECTION } from 'src/constants';
-import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import { PG_CONNECTION } from '../../src/constants';
+import { SupabaseBucket } from '../../src/enums/supabase-bucket-enum';
 import * as schema from '../drizzle/schema';
 import { CreateModuleGroupDto } from './dto/create-module-group.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -26,8 +26,8 @@ import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
-import { AuditLogService } from 'src/audit-log/audit-log.service';
-import { ActionType, EntityType } from 'src/enums/audit-log.enum';
+import { AuditLogService } from '../../src/audit-log/audit-log.service';
+import { ActionType, EntityType } from '../../src/enums/audit-log.enum';
 
 @Injectable()
 export class AcademiesService {

@@ -9,13 +9,13 @@ import {
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
 import { SupabaseService } from 'lib/supabase.service';
-import { PG_CONNECTION } from 'src/constants';
+import { PG_CONNECTION } from '../../src/constants';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { CreateUserSubmissionDto } from './dto/create-user-submission.dto';
 import { eq } from 'drizzle-orm';
-import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import { SupabaseBucket } from '../../src/enums/supabase-bucket-enum';
 import { nanoid } from 'nanoid';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../src/users/users.service';
 import { UpdateUserSubmissionDto } from './dto/update-user-submission.do';
 import { CreateUserSubmissionResultDto } from './dto/create-user-submission-result.dto';
 
@@ -354,7 +354,7 @@ export class UserSubmissionsService {
       throw new ConflictException('Sorry, the submission already reviewed');
     }
 
-    if (userRole.role === 'admin' || userRole.role === 'superadmin') {
+    if (userRole.role !== 'admin') {
       throw new UnauthorizedException('Unauthorized');
     }
 

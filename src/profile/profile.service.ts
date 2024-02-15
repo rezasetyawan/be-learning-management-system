@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { PG_CONNECTION } from 'src/constants';
+import { PG_CONNECTION } from '../../src/constants';
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
 

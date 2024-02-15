@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { PG_CONNECTION } from 'src/constants';
+import { PG_CONNECTION } from '../../src/constants';
 import * as schema from '../drizzle/schema';
-import { ActionType, EntityType } from 'src/enums/audit-log.enum';
+import { ActionType, EntityType } from '../../src/enums/audit-log.enum';
 import { nanoid } from 'nanoid';
 import { eq } from 'drizzle-orm';
 
