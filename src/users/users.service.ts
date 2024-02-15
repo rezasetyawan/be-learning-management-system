@@ -5,6 +5,8 @@ import * as schema from '../drizzle/schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
+import { UpdateRoleDto } from './dto/update-role.dto';
+import { eq } from 'drizzle-orm';
 
 export type User = {
   userId: number;
@@ -78,5 +80,16 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async updateRole(username: string, updateRoleDto: UpdateRoleDto) {
+    await this.db
+      .update(schema.users)
+      .set(updateRoleDto)
+      .where(eq(schema.users.username, username));
+
+    return {
+      status: 'sucess',
+    };
   }
 }
