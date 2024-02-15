@@ -6,12 +6,14 @@ import {
   UseGuards,
   Patch,
   Body,
+  Post,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Roles } from 'src/roles.decorator';
 import { Role } from 'src/enums/role.enum';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -47,5 +49,10 @@ export class UsersController {
   @Get(':username/role')
   getRole(@Param('username') username: string) {
     return this.usersService.getRole(username);
+  }
+
+  @Post()
+  createUser(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 }
