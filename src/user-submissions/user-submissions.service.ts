@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
-import { SupabaseService } from 'lib/supabase.service';
+import { SupabaseService } from '../../lib/supabase.service';
 import { PG_CONNECTION } from '../../src/constants';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { CreateUserSubmissionDto } from './dto/create-user-submission.dto';
