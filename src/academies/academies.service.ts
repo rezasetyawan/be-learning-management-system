@@ -9,7 +9,7 @@ import { CreateAcademyDto } from './dto/create-academy.dto';
 import { JwtService } from '@nestjs/jwt';
 import { eq, ilike, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { SupabaseService } from 'lib/supabase.service';
+import { SupabaseService } from '../../lib/supabase.service';
 import { nanoid } from 'nanoid';
 import { PG_CONNECTION } from '../../src/constants';
 import { SupabaseBucket } from '../../src/enums/supabase-bucket-enum';
@@ -28,6 +28,7 @@ import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { AuditLogService } from '../../src/audit-log/audit-log.service';
 import { ActionType, EntityType } from '../../src/enums/audit-log.enum';
+import { UsersService } from '../../src/users/users.service';
 
 @Injectable()
 export class AcademiesService {
@@ -36,6 +37,7 @@ export class AcademiesService {
     private readonly supabaseService: SupabaseService,
     private jwtService: JwtService,
     private readonly auditLogsService: AuditLogService,
+    private usersService: UsersService,
   ) {}
 
   // ACADEMIES
@@ -619,6 +621,7 @@ export class AcademiesService {
     }
 
     const user = this.jwtService.decode(accessToken);
+    const userRole = await this.usersService.getRole(user.username as string);
 
     const academy = await this.db
       .select({ id: schema.academies.id })
@@ -674,7 +677,7 @@ export class AcademiesService {
         },
       });
 
-      if (userSubmissions.length) {
+      if (userSubmissions.length && userRole.role === 'user') {
         const allActiveSubmissionsInCurrentModule =
           await this.db.query.userSubmissions.findMany({
             where: (submissions, { eq, and }) =>
@@ -705,6 +708,13 @@ export class AcademiesService {
                       : userSubmissionWaitingOrder,
                 }
               : null,
+          },
+        };
+      } else {
+        return {
+          status: 'success',
+          data: {
+            ...module,
           },
         };
       }
