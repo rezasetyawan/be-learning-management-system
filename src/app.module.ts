@@ -12,6 +12,7 @@ import { ModuleDiscussionsModule } from './module-discussions/module-discussions
 import { AuditLogService } from './audit-log/audit-log.service';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { UserSubmissionsModule } from './user-submissions/user-submissions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UserSubmissionsModule } from './user-submissions/user-submissions.modul
     ModuleDiscussionsModule,
     AuditLogModule,
     UserSubmissionsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuditLogService],
