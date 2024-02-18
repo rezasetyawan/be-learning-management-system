@@ -7,7 +7,6 @@ import {
   varchar,
   boolean,
   unique,
-  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 export const academyModuleTypesEnum = pgEnum('module_types', [
