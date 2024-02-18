@@ -1,7 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -33,5 +36,27 @@ export class AcademyApplicationsController {
       createAcademyApplicationDto,
       accessToken,
     );
+  }
+
+  @Get()
+  find(
+    @Query('academyId') academyId: string | undefined,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+    if (!authorization) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+    const accessToken = authorization.split(' ')[1];
+
+    if (!accessToken) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    if (!academyId) {
+      throw new BadRequestException('Please provide academyId query parameter');
+    }
+
+    return this.academyApplicationsService.findOne(academyId, accessToken);
   }
 }

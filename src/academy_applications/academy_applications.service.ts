@@ -54,4 +54,37 @@ export class AcademyApplicationsService {
       status: 'success',
     };
   }
+
+  async findOne(academyId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy.length) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const data = await this.db.query.academyApplications.findFirst({
+      where: (academyApplications, { and, eq }) =>
+        and(
+          eq(academyApplications.userId, user.sub as string),
+          eq(academyApplications.academyId, academyId),
+          eq(academyApplications.status, 'APPROVED'),
+        ),
+    });
+
+    return {
+      status: 'success',
+      data: data,
+    };
+  }
 }
