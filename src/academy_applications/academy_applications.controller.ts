@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -11,6 +13,7 @@ import {
 import { AcademyApplicationsService } from './academy_applications.service';
 import { Request } from 'express';
 import { CreateAcademyApplicationDto } from './dto/create-academy-application.dto';
+import { UpdateAcademyApplicationDto } from './dto/update-academy-application.dto';
 
 @Controller('academy-applications')
 export class AcademyApplicationsController {
@@ -63,5 +66,16 @@ export class AcademyApplicationsController {
   @Get('/all')
   findAll() {
     return this.academyApplicationsService.getAll();
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateAcademyApplicationDto: UpdateAcademyApplicationDto,
+  ) {
+    return this.academyApplicationsService.update(
+      id,
+      updateAcademyApplicationDto,
+    );
   }
 }

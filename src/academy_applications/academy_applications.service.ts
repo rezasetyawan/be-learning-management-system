@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateAcademyApplicationDto } from './dto/create-academy-application.dto';
 import { nanoid } from 'nanoid';
 import { eq } from 'drizzle-orm';
+import { UpdateAcademyApplicationDto } from './dto/update-academy-application.dto';
 @Injectable()
 export class AcademyApplicationsService {
   constructor(
@@ -111,6 +112,33 @@ export class AcademyApplicationsService {
     return {
       status: 'success',
       data,
+    };
+  }
+
+  async update(
+    id: string,
+    updateAcademyApplicationDto: UpdateAcademyApplicationDto,
+  ) {
+    const data = await this.db.query.academyApplications.findFirst({
+      where: (applications, { eq }) => eq(applications.id, id),
+    });
+
+    if (!data) {
+      throw new NotFoundException('Data not found');
+    }
+
+    const payload = {
+      ...updateAcademyApplicationDto,
+      updatedAt: Date.now().toString(),
+    };
+
+    await this.db
+      .update(schema.academyApplications)
+      .set(payload)
+      .where(eq(schema.academyApplications.id, id));
+
+    return {
+      status: 'success',
     };
   }
 }

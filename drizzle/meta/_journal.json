@@ -274,6 +274,20 @@
       "when": 1708238318525,
       "tag": "0038_flaky_ulik",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1708251031558,
+      "tag": "0039_polite_white_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1708251244228,
+      "tag": "0040_complex_puck",
+      "breakpoints": true
     }
   ]
 }
