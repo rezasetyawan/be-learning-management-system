@@ -288,6 +288,13 @@
       "when": 1708251244228,
       "tag": "0040_complex_puck",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1708258885674,
+      "tag": "0041_spicy_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }
