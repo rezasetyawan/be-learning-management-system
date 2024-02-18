@@ -73,18 +73,20 @@ export class AcademyApplicationsService {
       throw new NotFoundException('Academy not found');
     }
 
-    const data = await this.db.query.academyApplications.findFirst({
+    const data = await this.db.query.academyApplications.findMany({
       where: (academyApplications, { and, eq }) =>
         and(
           eq(academyApplications.userId, user.sub as string),
           eq(academyApplications.academyId, academyId),
-          eq(academyApplications.status, 'APPROVED'),
         ),
+      orderBy: (academyApplications, { desc }) => [
+        desc(academyApplications.createdAt),
+      ],
     });
 
     return {
       status: 'success',
-      data: data,
+      data: data.length ? data[data.length - 1] : undefined,
     };
   }
 }
