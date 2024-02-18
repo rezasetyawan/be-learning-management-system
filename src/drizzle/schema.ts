@@ -68,6 +68,7 @@ export const academiesRelations = relations(academies, ({ many, one }) => ({
     references: [users.id],
   }),
   academyApplications: many(academyApplications),
+  userProgress: many(userProgress),
 }));
 
 export const academyModuleGroups = pgTable('academy_module_groups', {
@@ -473,4 +474,20 @@ export const academyApplicationsRelations = relations(
     }),
   }),
 );
+
+export const userProgress = pgTable('user_progress', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  academyId: varchar('academy_id', { length: 50 })
+    .references(() => academies.id, { onDelete: 'cascade' })
+    .notNull(),
+  moduleId: varchar('module_id', { length: 50 })
+    .references(() => academyModules.id, { onDelete: 'cascade' })
+    .notNull(),
+  isCompleted: boolean('is_completed').default(false),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+});
 export type NewUser = typeof users.$inferInsert;
