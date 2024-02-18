@@ -20,6 +20,12 @@ export const userSubmissionStatus = pgEnum('submisssion_status', [
   'REVIEWED',
 ]);
 
+export const academyApplicationStatus = pgEnum('academy_application_status', [
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+]);
+
 export const users = pgTable('users', {
   id: varchar('id', { length: 50 }).primaryKey(),
   fullname: text('full_name').notNull(),
@@ -37,6 +43,7 @@ export const users = pgTable('users', {
 
 export const usersRelations = relations(users, ({ many }) => ({
   discussions: many(moduleDiscussions),
+  academyApplications: many(academyApplications),
 }));
 
 export const academies = pgTable('academies', {
@@ -60,6 +67,7 @@ export const academiesRelations = relations(academies, ({ many, one }) => ({
     fields: [academies.deletedBy],
     references: [users.id],
   }),
+  academyApplications: many(academyApplications),
 }));
 
 export const academyModuleGroups = pgTable('academy_module_groups', {
@@ -438,4 +446,31 @@ export const userSubmissionResultsRelations = relations(
   }),
 );
 
+export const academyApplications = pgTable('academy_applications', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  academyId: varchar('academy_id', { length: 50 })
+    .references(() => academies.id, { onDelete: 'cascade' })
+    .notNull(),
+  status: academyApplicationStatus('status').notNull().default('PENDING'),
+  message: text('message').default(''),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+});
+
+export const academyApplicationsRelations = relations(
+  academyApplications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [academyApplications.userId],
+      references: [users.id],
+    }),
+    academy: one(academies, {
+      fields: [academyApplications.academyId],
+      references: [academies.id],
+    }),
+  }),
+);
 export type NewUser = typeof users.$inferInsert;
