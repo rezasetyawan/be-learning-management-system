@@ -59,4 +59,9 @@ export class AcademyApplicationsController {
 
     return this.academyApplicationsService.findOne(academyId, accessToken);
   }
+
+  @Get('/all')
+  findAll() {
+    return this.academyApplicationsService.getAll();
+  }
 }

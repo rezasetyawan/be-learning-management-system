@@ -89,4 +89,28 @@ export class AcademyApplicationsService {
       data: data.length ? data[data.length - 1] : undefined,
     };
   }
+
+  async getAll() {
+    const data = await this.db.query.academyApplications.findMany({
+      with: {
+        user: {
+          columns: {
+            username: true,
+            fullname: true,
+          },
+        },
+        academy: {
+          columns: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      status: 'success',
+      data,
+    };
+  }
 }
