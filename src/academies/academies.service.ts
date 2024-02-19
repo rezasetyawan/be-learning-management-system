@@ -238,9 +238,10 @@ export class AcademiesService {
           isDeleted: academy.isDeleted,
           coverImageUrl: academy.coverImageUrl,
           deletedAt: academy.deletedAt,
-          deleteBy: academy.deletedBy,
+          deletedBy: academy.deletedBy,
           joinedUserCount: academy.academyApplications.length,
           moduleCount: publishedModuleIds.length,
+          description: academy.description,
         };
       });
       return academies;
@@ -298,10 +299,11 @@ export class AcademiesService {
           isPublished: academy.isPublished,
           isDeleted: academy.isDeleted,
           coverImageUrl: academy.coverImageUrl,
-          deletedAt: academy.deletedAt,
-          deleteBy: academy.deletedBy,
+          deleteddAt: academy.deletedAt,
+          deletedBy: academy.deletedBy,
           joinedUserCount: academy.academyApplications.length,
           moduleCount: publishedModuleIds.length,
+          description: academy.description,
         };
       });
       return academies;
