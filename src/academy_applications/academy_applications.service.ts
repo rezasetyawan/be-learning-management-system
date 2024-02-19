@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import * as schema from '../drizzle/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { PG_CONNECTION } from 'src/constants';
+import { PG_CONNECTION } from '../../src/constants';
 import { JwtService } from '@nestjs/jwt';
 import { CreateAcademyApplicationDto } from './dto/create-academy-application.dto';
 import { nanoid } from 'nanoid';
