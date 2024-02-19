@@ -203,6 +203,11 @@ export class AcademiesService {
             columns: {
               id: true,
             },
+            where: (moduleGroups, { eq, and }) =>
+              and(
+                eq(moduleGroups.isDeleted, false),
+                eq(moduleGroups.isPublished, true),
+              ),
             with: {
               modules: {
                 where: (modules, { and, eq }) =>
@@ -259,6 +264,11 @@ export class AcademiesService {
             columns: {
               id: true,
             },
+            where: (moduleGroups, { eq, and }) =>
+              and(
+                eq(moduleGroups.isDeleted, false),
+                eq(moduleGroups.isPublished, true),
+              ),
             with: {
               modules: {
                 where: (modules, { and, eq }) =>
