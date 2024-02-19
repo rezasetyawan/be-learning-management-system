@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as schema from '../drizzle/schema';
 import { PG_CONNECTION } from '../../src/constants';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -54,6 +59,68 @@ export class UserProgressService {
 
     return {
       status: 'success',
+    };
+  }
+
+  async getProgress(academyId: string, accessToken: string) {
+    const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+    if (!isTokenValid) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    const user = this.jwtService.decode(accessToken);
+
+    const academy = await this.db
+      .select({ id: schema.academies.id })
+      .from(schema.academies)
+      .where(eq(schema.academies.id, academyId));
+
+    if (!academy.length) {
+      throw new NotFoundException('Academy not found');
+    }
+
+    const data = await this.db.query.academyModuleGroups.findMany({
+      with: {
+        modules: {
+          columns: {
+            id: true,
+          },
+          where: (modules, { and, eq }) =>
+            and(eq(modules.isPublished, true), eq(modules.isDeleted, false)),
+        },
+      },
+      columns: {
+        id: true,
+      },
+      where: (group, { eq }) => eq(group.academyId, academyId),
+    });
+
+    const publishedModuleId = data.flatMap(({ modules }) =>
+      modules.map(({ id }) => id),
+    );
+
+    const validCompletedModule = await this.db.query.userProgress.findMany({
+      where: (progress, { and, eq, inArray }) =>
+        and(
+          eq(progress.userId, user.sub as string),
+          inArray(progress.moduleId, publishedModuleId),
+        ),
+
+      columns: {
+        id: true,
+      },
+    });
+
+    const userProgressPercentage = (
+      (validCompletedModule.length / publishedModuleId.length) *
+      100
+    ).toFixed(0);
+    return {
+      status: 'success',
+      data: {
+        userProgressPercentage,
+      },
     };
   }
 }
