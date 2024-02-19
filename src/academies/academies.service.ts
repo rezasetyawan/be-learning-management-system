@@ -191,10 +191,55 @@ export class AcademiesService {
                 ilike(academies.name, `%${searchKey}%`),
                 eq(academies.isPublished, true),
               ),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
+            },
+          },
+          moduleGroups: {
+            columns: {
+              id: true,
+            },
+            with: {
+              modules: {
+                where: (modules, { and, eq }) =>
+                  and(
+                    eq(modules.isDeleted, false),
+                    eq(modules.isPublished, true),
+                  ),
+                columns: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
       });
-      return data;
+
+      const academies = data.map((academy) => {
+        const publishedModuleIds = academy.moduleGroups.flatMap(({ modules }) =>
+          modules.map(({ id }) => id),
+        );
+
+        return {
+          id: academy.id,
+          name: academy.name,
+          createdAt: academy.createdAt,
+          updatedAt: academy.updatedAt,
+          isPublished: academy.isPublished,
+          isDeleted: academy.isDeleted,
+          coverImageUrl: academy.coverImageUrl,
+          deletedAt: academy.deletedAt,
+          deleteBy: academy.deletedBy,
+          joinedUserCount: academy.academyApplications.length,
+          moduleCounts: publishedModuleIds.length,
+        };
+      });
+      return academies;
     } else {
-      console.log('testt bang');
       const data = await this.db.query.academies.findMany({
         where: (academies, { and, eq }) =>
           and(
@@ -202,8 +247,54 @@ export class AcademiesService {
             ilike(academies.name, `%${searchKey}%`),
             eq(academies.isPublished, true),
           ),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
+            },
+          },
+          moduleGroups: {
+            columns: {
+              id: true,
+            },
+            with: {
+              modules: {
+                where: (modules, { and, eq }) =>
+                  and(
+                    eq(modules.isDeleted, false),
+                    eq(modules.isPublished, true),
+                  ),
+                columns: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
       });
-      return data;
+
+      const academies = data.map((academy) => {
+        const publishedModuleIds = academy.moduleGroups.flatMap(({ modules }) =>
+          modules.map(({ id }) => id),
+        );
+
+        return {
+          id: academy.id,
+          name: academy.name,
+          createdAt: academy.createdAt,
+          updatedAt: academy.updatedAt,
+          isPublished: academy.isPublished,
+          isDeleted: academy.isDeleted,
+          coverImageUrl: academy.coverImageUrl,
+          deletedAt: academy.deletedAt,
+          deleteBy: academy.deletedBy,
+          joinedUserCount: academy.academyApplications.length,
+          moduleCounts: publishedModuleIds.length,
+        };
+      });
+      return academies;
     }
   }
 
