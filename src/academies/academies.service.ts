@@ -235,7 +235,7 @@ export class AcademiesService {
           deletedAt: academy.deletedAt,
           deleteBy: academy.deletedBy,
           joinedUserCount: academy.academyApplications.length,
-          moduleCounts: publishedModuleIds.length,
+          moduleCount: publishedModuleIds.length,
         };
       });
       return academies;
@@ -291,7 +291,7 @@ export class AcademiesService {
           deletedAt: academy.deletedAt,
           deleteBy: academy.deletedBy,
           joinedUserCount: academy.academyApplications.length,
-          moduleCounts: publishedModuleIds.length,
+          moduleCount: publishedModuleIds.length,
         };
       });
       return academies;
