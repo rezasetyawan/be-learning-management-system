@@ -303,6 +303,12 @@ export class AcademiesService {
       where: (academies, { and, eq }) => and(eq(academies.id, id)),
       // and(eq(academies.id, id), eq(academies.isDeleted, false)),
       with: {
+        academyApplications: {
+          where: (applications, { eq }) => eq(applications.status, 'APPROVED'),
+          columns: {
+            id: true,
+          },
+        },
         moduleGroups: {
           columns: {
             createdAt: false,
@@ -318,10 +324,18 @@ export class AcademiesService {
                 academyModuleGroupId: false,
               },
               orderBy: (modules, { asc }) => [asc(modules.order)],
-              where: (modules, { eq }) => eq(modules.isDeleted, false),
+              where: (modules, { and, eq }) =>
+                and(
+                  eq(modules.isDeleted, false),
+                  eq(modules.isPublished, true),
+                ),
             },
           },
-          where: (moduleGroups, { eq }) => eq(moduleGroups.isDeleted, false),
+          where: (moduleGroups, { eq, and }) =>
+            and(
+              eq(moduleGroups.isDeleted, false),
+              eq(moduleGroups.isPublished, true),
+            ),
         },
       },
     });
@@ -329,9 +343,19 @@ export class AcademiesService {
     if (!data) {
       throw new NotFoundException('Academy not found');
     }
+
+    const publishedModuleIds = data.moduleGroups.flatMap(({ modules }) =>
+      modules.map(({ id }) => id),
+    );
+    const academy = {
+      ...data,
+      joinedUserCount: data.academyApplications.length,
+      moduleCount: publishedModuleIds.length,
+    };
+
     return {
       status: 'success',
-      data: data,
+      data: academy,
     };
   }
 
