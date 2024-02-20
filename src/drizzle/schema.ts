@@ -42,11 +42,13 @@ export const users = pgTable('users', {
     .notNull(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   discussions: many(moduleDiscussions),
   academyApplications: many(academyApplications),
+  profile: one(userProfile),
 }));
 
+// TODO: FIX DELETED BY CASCADE AND CHECK ALL DELETE CASCADE
 export const academies = pgTable('academies', {
   id: varchar('id', { length: 50 }).primaryKey(),
   name: text('name').notNull(),
@@ -502,6 +504,22 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
   academy: one(academies, {
     fields: [userProgress.academyId],
     references: [academies.id],
+  }),
+}));
+
+export const userProfile = pgTable('user_profile', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  about: text('about'),
+  profileImageUrl: text('profile_image_url'),
+});
+
+export const userProfileRelations = relations(userProfile, ({ one }) => ({
+  user: one(users, {
+    fields: [userProfile.userId],
+    references: [users.id],
   }),
 }));
 export type NewUser = typeof users.$inferInsert;

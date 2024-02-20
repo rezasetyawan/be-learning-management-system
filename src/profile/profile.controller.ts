@@ -1,4 +1,10 @@
-import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ProfileService } from './profile.service';
 import { Request } from 'express';
 
@@ -18,5 +24,15 @@ export class ProfileController {
     }
 
     return this.profileService.find(accessToken);
+  }
+
+  @Get(':username')
+  findByUsername(@Param('username') username: string) {
+    return this.profileService.findByUsername(username);
+  }
+
+  @Get(':username/academies')
+  getUserAcademies(@Param('username') username: string) {
+    return this.profileService.getUserAcademies(username);
   }
 }
