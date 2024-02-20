@@ -221,6 +221,15 @@ export class AcademiesService {
               },
             },
           },
+          ...(isDeleted && {
+            user: {
+              columns: {
+                username: true,
+                fullname: true,
+                role: true,
+              },
+            },
+          }),
         },
       });
 
@@ -242,6 +251,7 @@ export class AcademiesService {
           joinedUserCount: academy.academyApplications.length,
           moduleCount: publishedModuleIds.length,
           description: academy.description,
+          user: academy.user,
         };
       });
       return academies;
