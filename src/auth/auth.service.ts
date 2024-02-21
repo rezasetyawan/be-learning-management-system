@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -20,7 +21,7 @@ export class AuthService {
     const user = await this.usersService.findOneWithEmail(signInDto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid Credentials');
+      throw new NotFoundException('User not found');
     }
 
     const isPasswordCorrect = await bcrypt.compare(
@@ -45,9 +46,26 @@ export class AuthService {
 
   async signUp(signUpDto: SignUpDto) {
     try {
-      await this.usersService.create(signUpDto);
       const user = await this.usersService.findOne(signUpDto.username);
-      const payload = { sub: user.id, username: user.username };
+      const userByEmail = await this.usersService.findOneWithEmail(
+        signUpDto.email,
+      );
+
+      if (user && user.id) {
+        throw new BadRequestException(
+          'Gagal untuk meregister, username sudah digunakan',
+        );
+      }
+
+      if (userByEmail && userByEmail.id) {
+        throw new BadRequestException(
+          'Gagal untuk meregister, email sudah digunakan',
+        );
+      }
+
+      const newUser = await this.usersService.create(signUpDto);
+
+      const payload = { sub: newUser.id, username: newUser.username };
 
       const access_token = await this.jwtService.signAsync(payload);
 
