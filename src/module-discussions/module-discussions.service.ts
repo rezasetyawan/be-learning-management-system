@@ -143,6 +143,10 @@ export class ModuleDiscussionsService {
       },
     });
 
+    if (!data) {
+      throw new NotFoundException('Discussion not found');
+    }
+
     return {
       status: 'success',
       data,
