@@ -384,18 +384,18 @@ export class AcademiesService {
   // TODO: GET LAST READED MODULE FROM DATABASE
   // TODO: HANDLE ERROR IF MODULE GROUP DOESN'T HAVE MODULES
   async getUserLastReadModule(academyId: string, accessToken: string) {
-    const module = await this.db.query.academies.findFirst({
-      where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
-    });
-
-    if (!module) {
-      throw new NotFoundException('Module not found');
-    }
-
     const isTokenValid = await this.jwtService.verifyAsync(accessToken);
 
     if (!isTokenValid) {
       throw new UnauthorizedException('Unauthorized');
+    }
+
+    const academy = await this.db.query.academies.findFirst({
+      where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
+    });
+
+    if (!academy) {
+      throw new NotFoundException('Academy not found');
     }
 
     const data = this.jwtService.decode(accessToken);
@@ -410,7 +410,6 @@ export class AcademiesService {
     });
 
     if (!lastReadModule) {
-      console.log('TESSTTTT');
       const data = await this.db.query.academyModuleGroups.findMany({
         columns: {
           id: true,
@@ -444,7 +443,6 @@ export class AcademiesService {
       };
     }
 
-    console.log(lastReadModule);
     return {
       status: 'succcess',
       data: {
