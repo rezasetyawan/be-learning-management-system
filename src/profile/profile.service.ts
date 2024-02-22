@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { PG_CONNECTION } from '../../src/constants';
 import * as schema from '../drizzle/schema';
@@ -35,6 +40,9 @@ export class ProfileService {
         profile: {},
       },
     });
+
+    if (!user) throw new NotFoundException('User not found');
+
     return user;
   }
 
@@ -79,6 +87,8 @@ export class ProfileService {
         },
       },
     });
+
+    if (!user) throw new NotFoundException('User not found');
 
     const userAcademiesPromises = user.academyApplications.map(async (data) => {
       const joinedUserCount = await this.db
