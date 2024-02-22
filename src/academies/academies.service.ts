@@ -320,65 +320,144 @@ export class AcademiesService {
     }
   }
 
-  async findOne(id: string) {
-    const data = await this.db.query.academies.findFirst({
-      where: (academies, { and, eq }) => and(eq(academies.id, id)),
-      // and(eq(academies.id, id), eq(academies.isDeleted, false)),
-      with: {
-        academyApplications: {
-          where: (applications, { eq }) => eq(applications.status, 'APPROVED'),
-          columns: {
-            id: true,
-          },
-        },
-        moduleGroups: {
-          columns: {
-            createdAt: false,
-            updatedAt: false,
-            academyId: false,
-          },
-          orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
-          with: {
-            modules: {
-              columns: {
-                createdAt: false,
-                updatedAt: false,
-                academyModuleGroupId: false,
-              },
-              orderBy: (modules, { asc }) => [asc(modules.order)],
-              where: (modules, { and, eq }) =>
-                and(
-                  eq(modules.isDeleted, false),
-                  eq(modules.isPublished, true),
-                ),
+  async findOne(id: string, accessToken?: string) {
+    if (accessToken) {
+      const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+      if (!isTokenValid) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      const user = this.jwtService.decode(accessToken);
+      const userRole = await this.usersService.getRole(user.username as string);
+
+      const isAuthorized =
+        userRole.role === 'admin' || userRole.role === 'superadmin';
+
+      const data = await this.db.query.academies.findFirst({
+        where: (academies, { and, eq }) => and(eq(academies.id, id)),
+        // and(eq(academies.id, id), eq(academies.isDeleted, false)),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
             },
           },
-          where: (moduleGroups, { eq, and }) =>
-            and(
-              eq(moduleGroups.isDeleted, false),
-              eq(moduleGroups.isPublished, true),
-            ),
+          moduleGroups: {
+            columns: {
+              createdAt: false,
+              updatedAt: false,
+              academyId: false,
+            },
+            orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
+            with: {
+              modules: {
+                columns: {
+                  createdAt: false,
+                  updatedAt: false,
+                  academyModuleGroupId: false,
+                },
+                orderBy: (modules, { asc }) => [asc(modules.order)],
+                where: (modules, { and, eq }) =>
+                  isAuthorized
+                    ? eq(modules.isDeleted, false)
+                    : and(
+                        eq(modules.isDeleted, false),
+                        eq(modules.isPublished, true),
+                      ),
+              },
+            },
+            where: (moduleGroups, { eq, and }) =>
+              isAuthorized
+                ? eq(moduleGroups.isDeleted, false)
+                : and(
+                    eq(moduleGroups.isDeleted, false),
+                    eq(moduleGroups.isPublished, true),
+                  ),
+          },
         },
-      },
-    });
+      });
 
-    if (!data) {
-      throw new NotFoundException('Academy not found');
+      if (!data) {
+        throw new NotFoundException('Academy not found');
+      }
+
+      const publishedModuleIds = data.moduleGroups.flatMap(({ modules }) =>
+        modules.map(({ id }) => id),
+      );
+      const academy = {
+        ...data,
+        joinedUserCount: data.academyApplications.length,
+        moduleCount: publishedModuleIds.length,
+      };
+
+      return {
+        status: 'success',
+        data: academy,
+      };
+    } else {
+      const data = await this.db.query.academies.findFirst({
+        where: (academies, { and, eq }) => and(eq(academies.id, id)),
+        // and(eq(academies.id, id), eq(academies.isDeleted, false)),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
+            },
+          },
+          moduleGroups: {
+            columns: {
+              createdAt: false,
+              updatedAt: false,
+              academyId: false,
+            },
+            orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
+            with: {
+              modules: {
+                columns: {
+                  createdAt: false,
+                  updatedAt: false,
+                  academyModuleGroupId: false,
+                },
+                orderBy: (modules, { asc }) => [asc(modules.order)],
+                where: (modules, { and, eq }) =>
+                  and(
+                    eq(modules.isDeleted, false),
+                    eq(modules.isPublished, true),
+                  ),
+              },
+            },
+            where: (moduleGroups, { eq, and }) =>
+              and(
+                eq(moduleGroups.isDeleted, false),
+                eq(moduleGroups.isPublished, true),
+              ),
+          },
+        },
+      });
+
+      if (!data) {
+        throw new NotFoundException('Academy not found');
+      }
+
+      const publishedModuleIds = data.moduleGroups.flatMap(({ modules }) =>
+        modules.map(({ id }) => id),
+      );
+      const academy = {
+        ...data,
+        joinedUserCount: data.academyApplications.length,
+        moduleCount: publishedModuleIds.length,
+      };
+
+      return {
+        status: 'success',
+        data: academy,
+      };
     }
-
-    const publishedModuleIds = data.moduleGroups.flatMap(({ modules }) =>
-      modules.map(({ id }) => id),
-    );
-    const academy = {
-      ...data,
-      joinedUserCount: data.academyApplications.length,
-      moduleCount: publishedModuleIds.length,
-    };
-
-    return {
-      status: 'success',
-      data: academy,
-    };
   }
 
   // TODO: GET LAST READED MODULE FROM DATABASE

@@ -93,8 +93,12 @@ export class AcademiesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.academiesService.findOne(id);
+  findOne(@Param('id') id: string, @Req() request: Request) {
+    const { authorization } = request.headers;
+
+    // the authorization is possibly undefined, and i add optional chaining
+    const accessToken: string | undefined = authorization?.split(' ')[1];
+    return this.academiesService.findOne(id, accessToken);
   }
 
   @Get(':id/continue')
