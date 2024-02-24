@@ -190,7 +190,7 @@ export class ProfileService {
         );
       }
       const fileUrl = await this.supabaseService.uploadToPublicStorage(
-        SupabaseBucket.ACADEMY_COVER_PICTURES,
+        SupabaseBucket.PROFILE_PICTURES,
         profileImage,
         `${updateProfileDto.username}-${timestamp}`,
       );
