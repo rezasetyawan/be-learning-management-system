@@ -43,16 +43,71 @@ export class DashboardService {
       .from(schema.academies)
       .where(eq(schema.academies.isPublished, true));
 
-    const popularAcademies = await this.db.query.academies.findMany({
+    const academiesData = await this.db.query.academies.findMany({
       columns: {
         name: true,
         id: true,
         coverImageUrl: true,
       },
-      limit: 5,
       where: (academies, { and, eq }) =>
-        and(eq(academies.isPublished, true), eq(academies.isDeleted, false)),
+        and(eq(academies.isDeleted, false), eq(academies.isPublished, true)),
+      with: {
+        academyApplications: {
+          where: (applications, { eq }) => eq(applications.status, 'APPROVED'),
+          columns: {
+            id: true,
+          },
+        },
+        moduleGroups: {
+          columns: {
+            id: true,
+          },
+          where: (moduleGroups, { eq, and }) =>
+            and(
+              eq(moduleGroups.isDeleted, false),
+              eq(moduleGroups.isPublished, true),
+            ),
+          with: {
+            modules: {
+              where: (modules, { and, eq }) =>
+                and(
+                  eq(modules.isDeleted, false),
+                  eq(modules.isPublished, true),
+                ),
+              columns: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+      limit: 5,
     });
+
+    const popularAcademies = academiesData.map((academy) => {
+      const publishedModuleIds = academy.moduleGroups.flatMap(({ modules }) =>
+        modules.map(({ id }) => id),
+      );
+
+      return {
+        id: academy.id,
+        name: academy.name,
+        coverImageUrl: academy.coverImageUrl,
+        joinedUserCount: academy.academyApplications.length,
+        moduleCount: publishedModuleIds.length,
+      };
+    });
+
+    // const popularAcademies = await this.db.query.academies.findMany({
+    //   columns: {
+    //     name: true,
+    //     id: true,
+    //     coverImageUrl: true,
+    //   },
+    //   limit: 5,
+    //   where: (academies, { and, eq }) =>
+    //     and(eq(academies.isPublished, true), eq(academies.isDeleted, false)),
+    // });
 
     const currentYear = new Date().getFullYear();
     const currentYearUsers = await this.db.query.users.findMany({
