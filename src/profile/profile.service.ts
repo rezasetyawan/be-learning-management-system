@@ -146,12 +146,20 @@ export class ProfileService {
     const data = this.jwtService.decode(accessToken);
     const timestamp = Date.now().toString();
 
-    const user = await this.usersService.findOne(updateProfileDto.username);
+    const currentUser = await this.db.query.users.findFirst({
+      columns: {
+        username: true,
+      },
+      where: (users, { eq }) => eq(users.id, data.sub as string),
+    });
 
-    if (user && user.id) {
-      throw new BadRequestException(
-        'Gagal untuk update profile, username sudah digunakan',
-      );
+    if (currentUser.username !== updateProfileDto.username) {
+      const user = await this.usersService.findOne(updateProfileDto.username);
+      if (user && user.id) {
+        throw new BadRequestException(
+          'Gagal untuk update profile, username sudah digunakan',
+        );
+      }
     }
 
     const payload = {
@@ -160,7 +168,6 @@ export class ProfileService {
       updatedAt: timestamp,
     };
 
-    console.log(data);
     await this.db
       .update(schema.users)
       .set(payload)
@@ -194,8 +201,13 @@ export class ProfileService {
         .where(eq(schema.userProfile.userId, data.sub as string));
     }
 
+    const jwtPayload = { sub: data.sub, username: updateProfileDto.username };
+    const access_token = await this.jwtService.signAsync(jwtPayload);
     return {
       status: 'success',
+      data: {
+        accessToken: access_token,
+      },
     };
   }
 }
