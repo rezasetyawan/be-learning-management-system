@@ -267,6 +267,83 @@
       "when": 1707918163384,
       "tag": "0037_lush_captain_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1708238318525,
+      "tag": "0038_flaky_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1708251031558,
+      "tag": "0039_polite_white_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1708251244228,
+      "tag": "0040_complex_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1708258885674,
+      "tag": "0041_spicy_scarlet_witch",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1708263390489,
+      "tag": "0042_misty_husk",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1708263651493,
+      "tag": "0043_loving_rage",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1708263717510,
+      "tag": "0044_supreme_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1708264454598,
+      "tag": "0045_jazzy_banshee",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "5",
+      "when": 1708264734989,
+      "tag": "0046_unknown_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1708395085455,
+      "tag": "0047_mature_captain_flint",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "5",
+      "when": 1708404107147,
+      "tag": "0048_high_lilith",
+      "breakpoints": true
     }
   ]
 }

@@ -31,6 +31,7 @@ export class UsersService {
       };
 
       await this.db.insert(schema.users).values(user);
+      return user;
     } catch (error) {
       throw new BadRequestException(error.message, {
         cause: new Error(),

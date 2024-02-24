@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { CreateModuleDiscussionDto } from './dto/create-module-discussion.dto';
 import { UpdateModuleDiscussionDto } from './dto/update-module-discussion.dto';
-import { PG_CONNECTION } from 'src/constants';
+import { PG_CONNECTION } from '../../src/constants';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';
@@ -142,6 +142,10 @@ export class ModuleDiscussionsService {
         },
       },
     });
+
+    if (!data) {
+      throw new NotFoundException('Discussion not found');
+    }
 
     return {
       status: 'success',

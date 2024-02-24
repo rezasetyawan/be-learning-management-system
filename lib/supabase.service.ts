@@ -7,7 +7,7 @@ import {
 import { REQUEST } from '@nestjs/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Request } from 'express';
-import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import { SupabaseBucket } from '../src/enums/supabase-bucket-enum';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SupabaseService {

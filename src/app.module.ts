@@ -12,6 +12,9 @@ import { ModuleDiscussionsModule } from './module-discussions/module-discussions
 import { AuditLogService } from './audit-log/audit-log.service';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { UserSubmissionsModule } from './user-submissions/user-submissions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { AcademyApplicationsModule } from './academy_applications/academy_applications.module';
+import { UserProgressModule } from './user-progress/user-progress.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { UserSubmissionsModule } from './user-submissions/user-submissions.modul
     ModuleDiscussionsModule,
     AuditLogModule,
     UserSubmissionsModule,
+    DashboardModule,
+    AcademyApplicationsModule,
+    UserProgressModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuditLogService],

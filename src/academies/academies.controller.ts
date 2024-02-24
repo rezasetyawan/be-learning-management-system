@@ -82,13 +82,23 @@ export class AcademiesController {
   findAll(
     @Query('isDeleted') isDeleted: boolean = false,
     @Query('search') search: string | undefined,
+    @Req() request: Request,
   ) {
-    return this.academiesService.findAll(isDeleted, search);
+    const { authorization } = request.headers;
+
+    // the authorization is possibly undefined, and i add optional chaining
+    const accessToken: string | undefined = authorization?.split(' ')[1];
+
+    return this.academiesService.findAll(isDeleted, search, accessToken);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.academiesService.findOne(id);
+  findOne(@Param('id') id: string, @Req() request: Request) {
+    const { authorization } = request.headers;
+
+    // the authorization is possibly undefined, and i add optional chaining
+    const accessToken: string | undefined = authorization?.split(' ')[1];
+    return this.academiesService.findOne(id, accessToken);
   }
 
   @Get(':id/continue')

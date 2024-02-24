@@ -9,10 +9,10 @@ import { CreateAcademyDto } from './dto/create-academy.dto';
 import { JwtService } from '@nestjs/jwt';
 import { eq, ilike, sql } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { SupabaseService } from 'lib/supabase.service';
+import { SupabaseService } from '../../lib/supabase.service';
 import { nanoid } from 'nanoid';
-import { PG_CONNECTION } from 'src/constants';
-import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import { PG_CONNECTION } from '../../src/constants';
+import { SupabaseBucket } from '../../src/enums/supabase-bucket-enum';
 import * as schema from '../drizzle/schema';
 import { CreateModuleGroupDto } from './dto/create-module-group.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -26,8 +26,9 @@ import UpdateQuizzDto from './dto/quizz/update-quizz.dto';
 import { UpdateAcademyDto } from './dto/update-academy.dto';
 import { UpdateModuleGroupDto } from './dto/update-module-group.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
-import { AuditLogService } from 'src/audit-log/audit-log.service';
-import { ActionType, EntityType } from 'src/enums/audit-log.enum';
+import { AuditLogService } from '../../src/audit-log/audit-log.service';
+import { ActionType, EntityType } from '../../src/enums/audit-log.enum';
+import { UsersService } from '../../src/users/users.service';
 
 @Injectable()
 export class AcademiesService {
@@ -36,6 +37,7 @@ export class AcademiesService {
     private readonly supabaseService: SupabaseService,
     private jwtService: JwtService,
     private readonly auditLogsService: AuditLogService,
+    private usersService: UsersService,
   ) {}
 
   // ACADEMIES
@@ -162,69 +164,317 @@ export class AcademiesService {
     };
   }
 
-  async findAll(isDeleted: boolean, searchKey: string = '') {
-    const data = await this.db.query.academies.findMany({
-      where: (academies, { and, eq }) =>
-        and(
-          eq(academies.isDeleted, isDeleted),
-          ilike(academies.name, `%${searchKey}%`),
-        ),
-    });
-    return data;
-  }
+  async findAll(
+    isDeleted: boolean,
+    searchKey: string = '',
+    accessToken?: string,
+  ) {
+    if (accessToken) {
+      const isTokenValid = await this.jwtService.verifyAsync(accessToken);
 
-  async findOne(id: string) {
-    const data = await this.db.query.academies.findFirst({
-      where: (academies, { and, eq }) => and(eq(academies.id, id)),
-      // and(eq(academies.id, id), eq(academies.isDeleted, false)),
-      with: {
-        moduleGroups: {
-          columns: {
-            createdAt: false,
-            updatedAt: false,
-            academyId: false,
-          },
-          orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
-          with: {
-            modules: {
-              columns: {
-                createdAt: false,
-                updatedAt: false,
-                academyModuleGroupId: false,
-              },
-              orderBy: (modules, { asc }) => [asc(modules.order)],
-              where: (modules, { eq }) => eq(modules.isDeleted, false),
+      if (!isTokenValid) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      const user = this.jwtService.decode(accessToken);
+      const userRole = await this.usersService.getRole(user.username as string);
+      const data = await this.db.query.academies.findMany({
+        where: (academies, { and, eq }) =>
+          accessToken &&
+          (userRole.role === 'admin' || userRole.role === 'superadmin')
+            ? and(
+                eq(academies.isDeleted, isDeleted),
+                ilike(academies.name, `%${searchKey}%`),
+              )
+            : and(
+                eq(academies.isDeleted, isDeleted),
+                ilike(academies.name, `%${searchKey}%`),
+                eq(academies.isPublished, true),
+              ),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
             },
           },
-          where: (moduleGroups, { eq }) => eq(moduleGroups.isDeleted, false),
+          moduleGroups: {
+            columns: {
+              id: true,
+            },
+            where: (moduleGroups, { eq, and }) =>
+              and(
+                eq(moduleGroups.isDeleted, false),
+                eq(moduleGroups.isPublished, true),
+              ),
+            with: {
+              modules: {
+                where: (modules, { and, eq }) =>
+                  and(
+                    eq(modules.isDeleted, false),
+                    eq(modules.isPublished, true),
+                  ),
+                columns: {
+                  id: true,
+                },
+              },
+            },
+          },
+          ...(isDeleted && {
+            user: {
+              columns: {
+                username: true,
+                fullname: true,
+                role: true,
+              },
+            },
+          }),
         },
-      },
-    });
+      });
 
-    if (!data) {
-      throw new NotFoundException('Academy not found');
+      const academies = data.map((academy) => {
+        const publishedModuleIds = academy.moduleGroups.flatMap(({ modules }) =>
+          modules.map(({ id }) => id),
+        );
+
+        return {
+          id: academy.id,
+          name: academy.name,
+          createdAt: academy.createdAt,
+          updatedAt: academy.updatedAt,
+          isPublished: academy.isPublished,
+          isDeleted: academy.isDeleted,
+          coverImageUrl: academy.coverImageUrl,
+          deletedAt: academy.deletedAt,
+          deletedBy: academy.deletedBy,
+          joinedUserCount: academy.academyApplications.length,
+          moduleCount: publishedModuleIds.length,
+          description: academy.description,
+          user: academy.user,
+        };
+      });
+      return academies;
+    } else {
+      const data = await this.db.query.academies.findMany({
+        where: (academies, { and, eq }) =>
+          and(
+            eq(academies.isDeleted, isDeleted),
+            ilike(academies.name, `%${searchKey}%`),
+            eq(academies.isPublished, true),
+          ),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
+            },
+          },
+          moduleGroups: {
+            columns: {
+              id: true,
+            },
+            where: (moduleGroups, { eq, and }) =>
+              and(
+                eq(moduleGroups.isDeleted, false),
+                eq(moduleGroups.isPublished, true),
+              ),
+            with: {
+              modules: {
+                where: (modules, { and, eq }) =>
+                  and(
+                    eq(modules.isDeleted, false),
+                    eq(modules.isPublished, true),
+                  ),
+                columns: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const academies = data.map((academy) => {
+        const publishedModuleIds = academy.moduleGroups.flatMap(({ modules }) =>
+          modules.map(({ id }) => id),
+        );
+
+        return {
+          id: academy.id,
+          name: academy.name,
+          createdAt: academy.createdAt,
+          updatedAt: academy.updatedAt,
+          isPublished: academy.isPublished,
+          isDeleted: academy.isDeleted,
+          coverImageUrl: academy.coverImageUrl,
+          deleteddAt: academy.deletedAt,
+          deletedBy: academy.deletedBy,
+          joinedUserCount: academy.academyApplications.length,
+          moduleCount: publishedModuleIds.length,
+          description: academy.description,
+        };
+      });
+      return academies;
     }
-    return {
-      status: 'success',
-      data: data,
-    };
+  }
+
+  async findOne(id: string, accessToken?: string) {
+    if (accessToken) {
+      const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+      if (!isTokenValid) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      const user = this.jwtService.decode(accessToken);
+      const userRole = await this.usersService.getRole(user.username as string);
+
+      const isAuthorized =
+        userRole.role === 'admin' || userRole.role === 'superadmin';
+
+      const data = await this.db.query.academies.findFirst({
+        where: (academies, { and, eq }) => and(eq(academies.id, id)),
+        // and(eq(academies.id, id), eq(academies.isDeleted, false)),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
+            },
+          },
+          moduleGroups: {
+            columns: {
+              createdAt: false,
+              updatedAt: false,
+              academyId: false,
+            },
+            orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
+            with: {
+              modules: {
+                columns: {
+                  createdAt: false,
+                  updatedAt: false,
+                  academyModuleGroupId: false,
+                },
+                orderBy: (modules, { asc }) => [asc(modules.order)],
+                where: (modules, { and, eq }) =>
+                  isAuthorized
+                    ? eq(modules.isDeleted, false)
+                    : and(
+                        eq(modules.isDeleted, false),
+                        eq(modules.isPublished, true),
+                      ),
+              },
+            },
+            where: (moduleGroups, { eq, and }) =>
+              isAuthorized
+                ? eq(moduleGroups.isDeleted, false)
+                : and(
+                    eq(moduleGroups.isDeleted, false),
+                    eq(moduleGroups.isPublished, true),
+                  ),
+          },
+        },
+      });
+
+      if (!data) {
+        throw new NotFoundException('Academy not found');
+      }
+
+      const publishedModuleIds = data.moduleGroups.flatMap(({ modules }) =>
+        modules.map(({ id }) => id),
+      );
+      const academy = {
+        ...data,
+        joinedUserCount: data.academyApplications.length,
+        moduleCount: publishedModuleIds.length,
+      };
+
+      return {
+        status: 'success',
+        data: academy,
+      };
+    } else {
+      const data = await this.db.query.academies.findFirst({
+        where: (academies, { and, eq }) => and(eq(academies.id, id)),
+        // and(eq(academies.id, id), eq(academies.isDeleted, false)),
+        with: {
+          academyApplications: {
+            where: (applications, { eq }) =>
+              eq(applications.status, 'APPROVED'),
+            columns: {
+              id: true,
+            },
+          },
+          moduleGroups: {
+            columns: {
+              createdAt: false,
+              updatedAt: false,
+              academyId: false,
+            },
+            orderBy: (moduleGroups, { asc }) => [asc(moduleGroups.order)],
+            with: {
+              modules: {
+                columns: {
+                  createdAt: false,
+                  updatedAt: false,
+                  academyModuleGroupId: false,
+                },
+                orderBy: (modules, { asc }) => [asc(modules.order)],
+                where: (modules, { and, eq }) =>
+                  and(
+                    eq(modules.isDeleted, false),
+                    eq(modules.isPublished, true),
+                  ),
+              },
+            },
+            where: (moduleGroups, { eq, and }) =>
+              and(
+                eq(moduleGroups.isDeleted, false),
+                eq(moduleGroups.isPublished, true),
+              ),
+          },
+        },
+      });
+
+      if (!data) {
+        throw new NotFoundException('Academy not found');
+      }
+
+      const publishedModuleIds = data.moduleGroups.flatMap(({ modules }) =>
+        modules.map(({ id }) => id),
+      );
+      const academy = {
+        ...data,
+        joinedUserCount: data.academyApplications.length,
+        moduleCount: publishedModuleIds.length,
+      };
+
+      return {
+        status: 'success',
+        data: academy,
+      };
+    }
   }
 
   // TODO: GET LAST READED MODULE FROM DATABASE
   // TODO: HANDLE ERROR IF MODULE GROUP DOESN'T HAVE MODULES
   async getUserLastReadModule(academyId: string, accessToken: string) {
-    const module = await this.db.query.academies.findFirst({
-      where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
-    });
-
-    if (!module) {
-      throw new NotFoundException('Module not found');
-    }
-
     const isTokenValid = await this.jwtService.verifyAsync(accessToken);
 
     if (!isTokenValid) {
       throw new UnauthorizedException('Unauthorized');
+    }
+
+    const academy = await this.db.query.academies.findFirst({
+      where: (academies, { and, eq }) => and(eq(academies.id, academyId)),
+    });
+
+    if (!academy) {
+      throw new NotFoundException('Academy not found');
     }
 
     const data = this.jwtService.decode(accessToken);
@@ -239,7 +489,6 @@ export class AcademiesService {
     });
 
     if (!lastReadModule) {
-      console.log('TESSTTTT');
       const data = await this.db.query.academyModuleGroups.findMany({
         columns: {
           id: true,
@@ -273,7 +522,6 @@ export class AcademiesService {
       };
     }
 
-    console.log(lastReadModule);
     return {
       status: 'succcess',
       data: {
@@ -619,6 +867,7 @@ export class AcademiesService {
     }
 
     const user = this.jwtService.decode(accessToken);
+    const userRole = await this.usersService.getRole(user.username as string);
 
     const academy = await this.db
       .select({ id: schema.academies.id })
@@ -674,7 +923,7 @@ export class AcademiesService {
         },
       });
 
-      if (userSubmissions.length) {
+      if (userSubmissions.length && userRole.role === 'user') {
         const allActiveSubmissionsInCurrentModule =
           await this.db.query.userSubmissions.findMany({
             where: (submissions, { eq, and }) =>
@@ -705,6 +954,13 @@ export class AcademiesService {
                       : userSubmissionWaitingOrder,
                 }
               : null,
+          },
+        };
+      } else {
+        return {
+          status: 'success',
+          data: {
+            ...module,
           },
         };
       }

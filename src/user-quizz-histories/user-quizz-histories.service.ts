@@ -1,7 +1,7 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserQuizzHistoryDto } from './dto/create-user-quizz-history.dto';
 import { UpdateUserQuizzHistoryDto } from './dto/update-user-quizz-history.dto';
-import { PG_CONNECTION } from 'src/constants';
+import { PG_CONNECTION } from '../../src/constants';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../drizzle/schema';
 import { JwtService } from '@nestjs/jwt';

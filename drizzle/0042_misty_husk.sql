@@ -1,0 +1,2 @@
+ALTER TABLE "users" ALTER COLUMN "created_at" SET DEFAULT '1708263390434';--> statement-breakpoint
+ALTER TABLE "users" ALTER COLUMN "updated_at" SET DEFAULT '1708263390434';

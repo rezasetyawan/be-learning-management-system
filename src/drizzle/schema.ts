@@ -6,6 +6,7 @@ import {
   text,
   varchar,
   boolean,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 export const academyModuleTypesEnum = pgEnum('module_types', [
@@ -18,6 +19,12 @@ export const userSubmissionStatus = pgEnum('submisssion_status', [
   'PENDING',
   'REVIEW',
   'REVIEWED',
+]);
+
+export const academyApplicationStatus = pgEnum('academy_application_status', [
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
 ]);
 
 export const users = pgTable('users', {
@@ -35,10 +42,13 @@ export const users = pgTable('users', {
     .notNull(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   discussions: many(moduleDiscussions),
+  academyApplications: many(academyApplications),
+  profile: one(userProfile),
 }));
 
+// TODO: FIX DELETED BY CASCADE AND CHECK ALL DELETE CASCADE
 export const academies = pgTable('academies', {
   id: varchar('id', { length: 50 }).primaryKey(),
   name: text('name').notNull(),
@@ -60,6 +70,8 @@ export const academiesRelations = relations(academies, ({ many, one }) => ({
     fields: [academies.deletedBy],
     references: [users.id],
   }),
+  academyApplications: many(academyApplications),
+  userProgress: many(userProgress),
 }));
 
 export const academyModuleGroups = pgTable('academy_module_groups', {
@@ -438,4 +450,76 @@ export const userSubmissionResultsRelations = relations(
   }),
 );
 
+export const academyApplications = pgTable('academy_applications', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  academyId: varchar('academy_id', { length: 50 })
+    .references(() => academies.id, { onDelete: 'cascade' })
+    .notNull(),
+  status: academyApplicationStatus('status').notNull().default('PENDING'),
+  message: text('message').default(''),
+  createdAt: varchar('created_at', { length: 50 }).notNull(),
+  updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+});
+
+export const academyApplicationsRelations = relations(
+  academyApplications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [academyApplications.userId],
+      references: [users.id],
+    }),
+    academy: one(academies, {
+      fields: [academyApplications.academyId],
+      references: [academies.id],
+    }),
+  }),
+);
+
+export const userProgress = pgTable(
+  'user_progress',
+  {
+    id: varchar('id', { length: 50 }).primaryKey(),
+    userId: varchar('user_id', { length: 50 })
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    academyId: varchar('academy_id', { length: 50 })
+      .references(() => academies.id, { onDelete: 'cascade' })
+      .notNull(),
+    moduleId: varchar('module_id', { length: 50 })
+      .references(() => academyModules.id, { onDelete: 'cascade' })
+      .notNull(),
+    isCompleted: boolean('is_completed').default(false),
+    createdAt: varchar('created_at', { length: 50 }).notNull(),
+    updatedAt: varchar('updated_at', { length: 50 }).notNull(),
+  },
+  (t) => ({
+    userId_moduleId: unique().on(t.userId, t.moduleId),
+  }),
+);
+
+export const userProgressRelations = relations(userProgress, ({ one }) => ({
+  academy: one(academies, {
+    fields: [userProgress.academyId],
+    references: [academies.id],
+  }),
+}));
+
+export const userProfile = pgTable('user_profile', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 })
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  about: text('about'),
+  profileImageUrl: text('profile_image_url'),
+});
+
+export const userProfileRelations = relations(userProfile, ({ one }) => ({
+  user: one(users, {
+    fields: [userProfile.userId],
+    references: [users.id],
+  }),
+}));
 export type NewUser = typeof users.$inferInsert;

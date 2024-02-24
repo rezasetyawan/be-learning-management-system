@@ -9,9 +9,9 @@ import {
   Post,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { RolesGuard } from 'src/auth/guard/roles.guard';
-import { Roles } from 'src/roles.decorator';
-import { Role } from 'src/enums/role.enum';
+import { RolesGuard } from '../../src//auth/guard/roles.guard';
+import { Roles } from '../../src//roles.decorator';
+import { Role } from '../../src//enums/role.enum';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 
