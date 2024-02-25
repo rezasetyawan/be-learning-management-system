@@ -93,7 +93,12 @@ export class UserProgressService {
       columns: {
         id: true,
       },
-      where: (group, { eq }) => eq(group.academyId, academyId),
+      where: (group, { and, eq }) =>
+        and(
+          eq(group.academyId, academyId),
+          eq(group.isPublished, true),
+          eq(group.isDeleted, false),
+        ),
     });
 
     const publishedModuleId = data.flatMap(({ modules }) =>
