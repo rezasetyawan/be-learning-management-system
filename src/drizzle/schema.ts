@@ -46,6 +46,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   discussions: many(moduleDiscussions),
   academyApplications: many(academyApplications),
   profile: one(userProfile),
+  progress: many(userProgress),
 }));
 
 // TODO: FIX DELETED BY CASCADE AND CHECK ALL DELETE CASCADE
@@ -504,6 +505,10 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
   academy: one(academies, {
     fields: [userProgress.academyId],
     references: [academies.id],
+  }),
+  user: one(users, {
+    fields: [userProgress.userId],
+    references: [users.id],
   }),
 }));
 
