@@ -115,6 +115,94 @@ export class AcademyApplicationsService {
     };
   }
 
+  async getAcademyJoinedUser(academyId: string) {
+    const academy = await this.db.query.academies.findFirst({
+      columns: {
+        id: true,
+        name: true,
+      },
+      where: (academies, { eq }) => eq(academies.id, academyId),
+      with: {
+        moduleGroups: {
+          with: {
+            modules: {
+              columns: {
+                id: true,
+              },
+              where: (modules, { and, eq }) =>
+                and(
+                  eq(modules.isPublished, true),
+                  eq(modules.isDeleted, false),
+                ),
+            },
+          },
+          columns: {
+            id: true,
+          },
+          where: (group, { and, eq }) =>
+            and(
+              eq(group.academyId, academyId),
+              eq(group.isPublished, true),
+              eq(group.isDeleted, false),
+            ),
+        },
+      },
+    });
+
+    const publishedModuleId = academy.moduleGroups.flatMap(({ modules }) =>
+      modules.map(({ id }) => id),
+    );
+    const data = await this.db.query.academyApplications.findMany({
+      with: {
+        user: {
+          columns: {
+            username: true,
+            fullname: true,
+          },
+          with: {
+            progress: {
+              where: (progress, { inArray }) =>
+                inArray(progress.moduleId, publishedModuleId),
+
+              columns: {
+                id: true,
+                createdAt: true,
+              },
+              orderBy: (progress, { desc }) => [desc(progress.createdAt)],
+            },
+          },
+        },
+      },
+      where: (academyApplications, { and, eq }) =>
+        and(
+          eq(academyApplications.academyId, academyId),
+          eq(academyApplications.status, 'APPROVED'),
+        ),
+    });
+
+    const joinedUser = data.map((d) => {
+      const userProgressPercentage = (
+        (d.user.progress.length / publishedModuleId.length) *
+        100
+      ).toFixed(0);
+      const item = {
+        fullname: d.user.fullname,
+        username: d.user.username,
+        userProgressPercentage,
+        lastActivity: d.user.progress[0] ? d.user.progress[0].createdAt : null,
+        academyName: academy.name,
+        academyId: academy.id,
+      };
+
+      return item;
+    });
+
+    return {
+      status: 'success',
+      data: joinedUser,
+    };
+  }
+
   async update(
     id: string,
     updateAcademyApplicationDto: UpdateAcademyApplicationDto,
