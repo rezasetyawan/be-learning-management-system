@@ -94,6 +94,13 @@ export class ModuleDiscussionsService {
             fullname: true,
             username: true,
           },
+          with: {
+            profile: {
+              columns: {
+                profileImageUrl: true,
+              },
+            },
+          },
         },
         replies: {
           columns: {
@@ -124,6 +131,13 @@ export class ModuleDiscussionsService {
             fullname: true,
             username: true,
           },
+          with: {
+            profile: {
+              columns: {
+                profileImageUrl: true,
+              },
+            },
+          },
         },
         replies: {
           with: {
@@ -131,6 +145,13 @@ export class ModuleDiscussionsService {
               columns: {
                 fullname: true,
                 username: true,
+              },
+              with: {
+                profile: {
+                  columns: {
+                    profileImageUrl: true,
+                  },
+                },
               },
             },
           },
