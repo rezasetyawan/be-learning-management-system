@@ -432,7 +432,7 @@ export const userSubmissionResults = pgTable('user_submission_results', {
   reviewerNote: text('reviewer_note'),
   score: smallserial('score'),
   isPassed: boolean('is_passed'),
-  submissionId: varchar('submission_ID', { length: 50 })
+  submissionId: varchar('submission_id', { length: 50 })
     .references(() => userSubmissions.id, { onDelete: 'cascade' })
     .notNull(),
 });

@@ -351,6 +351,13 @@
       "when": 1708844069329,
       "tag": "0049_pretty_supernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1709211610164,
+      "tag": "0050_sleepy_skullbuster",
+      "breakpoints": true
     }
   ]
 }
