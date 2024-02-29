@@ -79,10 +79,16 @@ export class UserSubmissionsService {
       userId: user.sub as string,
     };
 
-    await this.db.insert(schema.userSubmissions).values(payload);
+    const submission = await this.db
+      .insert(schema.userSubmissions)
+      .values(payload)
+      .returning({ id: schema.userSubmissions.id });
 
     return {
       status: 'success',
+      data: {
+        submissionId: submission[0].id,
+      },
     };
   }
 
