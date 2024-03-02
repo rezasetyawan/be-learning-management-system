@@ -15,6 +15,8 @@ import { UserSubmissionsModule } from './user-submissions/user-submissions.modul
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AcademyApplicationsModule } from './academy_applications/academy_applications.module';
 import { UserProgressModule } from './user-progress/user-progress.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { GlobalHeaderInterceptor } from './global-header/global-header.interceptor';
 
 @Module({
   imports: [
@@ -33,6 +35,13 @@ import { UserProgressModule } from './user-progress/user-progress.module';
     UserProgressModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuditLogService],
+  providers: [
+    AppService,
+    AuditLogService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: GlobalHeaderInterceptor,
+    },
+  ],
 })
 export class AppModule {}
