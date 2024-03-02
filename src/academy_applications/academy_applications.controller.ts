@@ -78,4 +78,13 @@ export class AcademyApplicationsController {
       updateAcademyApplicationDto,
     );
   }
+
+  @Get('/joined')
+  getJoinedUser(@Query('academyId') academyId: string | undefined) {
+    if (!academyId) {
+      throw new BadRequestException('Please provide academyId query parameter');
+    }
+
+    return this.academyApplicationsService.getAcademyJoinedUser(academyId);
+  }
 }

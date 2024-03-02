@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -12,12 +11,12 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { UserSubmissionsService } from './user-submissions.service';
-import { CreateUserSubmissionDto } from './dto/create-user-submission.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
-import { UpdateUserSubmissionDto } from './dto/update-user-submission.do';
 import { CreateUserSubmissionResultDto } from './dto/create-user-submission-result.dto';
+import { CreateUserSubmissionDto } from './dto/create-user-submission.dto';
+import { UpdateUserSubmissionDto } from './dto/update-user-submission.do';
+import { UserSubmissionsService } from './user-submissions.service';
 
 @Controller('user-submissions')
 export class UserSubmissionsController {
@@ -37,13 +36,13 @@ export class UserSubmissionsController {
       throw new UnauthorizedException('Unauthorized');
     }
 
-    if (!academyId) {
-      throw new BadRequestException('Please provide academyId query parameter');
-    }
+    // if (!academyId) {
+    //   throw new BadRequestException('Please provide academyId query parameter');
+    // }
 
-    return this.userSubmissionsService.getUserSubmissionsByAcademyId(
-      academyId,
+    return this.userSubmissionsService.getUserSubmissions(
       accessToken,
+      academyId,
     );
   }
 

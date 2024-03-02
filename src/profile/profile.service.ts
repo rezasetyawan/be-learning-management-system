@@ -12,8 +12,8 @@ import { JwtService } from '@nestjs/jwt';
 import { and, count, eq } from 'drizzle-orm';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { SupabaseService } from 'lib/supabase.service';
-import { UsersService } from 'src/users/users.service';
-import { SupabaseBucket } from 'src/enums/supabase-bucket-enum';
+import { UsersService } from '../../src/users/users.service';
+import { SupabaseBucket } from '../../src/enums/supabase-bucket-enum';
 
 @Injectable()
 export class ProfileService {

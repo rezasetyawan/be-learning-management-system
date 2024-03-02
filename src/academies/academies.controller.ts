@@ -92,6 +92,20 @@ export class AcademiesController {
     return this.academiesService.findAll(isDeleted, search, accessToken);
   }
 
+  @Get('/autocomplete')
+  getAcademyList(
+    @Query('isDeleted') isDeleted: boolean = false,
+    @Query('search') search: string | undefined,
+    @Req() request: Request,
+  ) {
+    const { authorization } = request.headers;
+
+    // the authorization is possibly undefined, and i add optional chaining
+    const accessToken: string | undefined = authorization?.split(' ')[1];
+
+    return this.academiesService.getAcademyList(isDeleted, search, accessToken);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @Req() request: Request) {
     const { authorization } = request.headers;

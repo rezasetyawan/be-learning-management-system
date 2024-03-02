@@ -46,6 +46,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   discussions: many(moduleDiscussions),
   academyApplications: many(academyApplications),
   profile: one(userProfile),
+  progress: many(userProgress),
 }));
 
 // TODO: FIX DELETED BY CASCADE AND CHECK ALL DELETE CASCADE
@@ -431,7 +432,7 @@ export const userSubmissionResults = pgTable('user_submission_results', {
   reviewerNote: text('reviewer_note'),
   score: smallserial('score'),
   isPassed: boolean('is_passed'),
-  submissionId: varchar('submission_ID', { length: 50 })
+  submissionId: varchar('submission_id', { length: 50 })
     .references(() => userSubmissions.id, { onDelete: 'cascade' })
     .notNull(),
 });
@@ -504,6 +505,10 @@ export const userProgressRelations = relations(userProgress, ({ one }) => ({
   academy: one(academies, {
     fields: [userProgress.academyId],
     references: [academies.id],
+  }),
+  user: one(users, {
+    fields: [userProgress.userId],
+    references: [users.id],
   }),
 }));
 

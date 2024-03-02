@@ -320,6 +320,58 @@ export class AcademiesService {
     }
   }
 
+  async getAcademyList(
+    isDeleted: boolean,
+    searchKey: string = '',
+    accessToken?: string,
+  ) {
+    if (accessToken) {
+      const isTokenValid = await this.jwtService.verifyAsync(accessToken);
+
+      if (!isTokenValid) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      const user = this.jwtService.decode(accessToken);
+      const userRole = await this.usersService.getRole(user.username as string);
+      const data = await this.db.query.academies.findMany({
+        where: (academies, { and, eq }) =>
+          accessToken &&
+          (userRole.role === 'admin' || userRole.role === 'superadmin')
+            ? and(
+                eq(academies.isDeleted, isDeleted),
+                ilike(academies.name, `%${searchKey}%`),
+              )
+            : and(
+                eq(academies.isDeleted, isDeleted),
+                ilike(academies.name, `%${searchKey}%`),
+                eq(academies.isPublished, true),
+              ),
+        columns: {
+          id: true,
+          name: true,
+        },
+      });
+
+      return data;
+    } else {
+      const data = await this.db.query.academies.findMany({
+        where: (academies, { and, eq }) =>
+          and(
+            eq(academies.isDeleted, isDeleted),
+            ilike(academies.name, `%${searchKey}%`),
+            eq(academies.isPublished, true),
+          ),
+        columns: {
+          id: true,
+          name: true,
+        },
+      });
+
+      return data;
+    }
+  }
+
   async findOne(id: string, accessToken?: string) {
     if (accessToken) {
       const isTokenValid = await this.jwtService.verifyAsync(accessToken);

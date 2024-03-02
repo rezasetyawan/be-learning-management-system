@@ -79,14 +79,20 @@ export class UserSubmissionsService {
       userId: user.sub as string,
     };
 
-    await this.db.insert(schema.userSubmissions).values(payload);
+    const submission = await this.db
+      .insert(schema.userSubmissions)
+      .values(payload)
+      .returning({ id: schema.userSubmissions.id });
 
     return {
       status: 'success',
+      data: {
+        submissionId: submission[0].id,
+      },
     };
   }
 
-  async getUserSubmissionsByAcademyId(academyId: string, accessToken: string) {
+  async getUserSubmissions(accessToken: string, academyId?: string) {
     const isTokenValid = await this.jwtService.verifyAsync(accessToken);
 
     if (!isTokenValid) {
@@ -95,35 +101,47 @@ export class UserSubmissionsService {
 
     const user = this.jwtService.decode(accessToken);
     const userRole = await this.usersService.getRole(user.username as string);
+    if (academyId) {
+      const academy = await this.db
+        .select({
+          id: schema.academies.id,
+          name: schema.academies.name,
+          isDeleted: schema.academies.isDeleted,
+        })
+        .from(schema.academies)
+        .where(eq(schema.academies.id, academyId));
 
-    const academy = await this.db
-      .select({
-        id: schema.academies.id,
-        name: schema.academies.name,
-        isDeleted: schema.academies.isDeleted,
-      })
-      .from(schema.academies)
-      .where(eq(schema.academies.id, academyId));
-
-    if (!academy.length) {
-      throw new NotFoundException('Academy not found');
+      if (!academy.length) {
+        throw new NotFoundException('Academy not found');
+      }
     }
 
     const data = await this.db.query.userSubmissions.findMany({
-      where: (userSubmissions, { and, eq }) =>
+      where: (userSubmissions, { and, eq, ne }) =>
         userRole.role === 'admin' || userRole.role === 'superadmin'
-          ? eq(userSubmissions.academyId, academyId)
+          ? academyId
+            ? eq(userSubmissions.academyId, academyId)
+            : ne(userSubmissions.academyId, academyId)
           : and(
-              eq(userSubmissions.academyId, academyId),
+              academyId
+                ? eq(userSubmissions.academyId, academyId)
+                : ne(userSubmissions.academyId, academyId),
               eq(userSubmissions.userId, user.sub),
             ),
       with: {
         user: {
           columns: {
             fullname: true,
+            username: true,
           },
         },
         module: {
+          columns: {
+            name: true,
+            id: true,
+          },
+        },
+        academy: {
           columns: {
             name: true,
             id: true,
