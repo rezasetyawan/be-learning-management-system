@@ -278,12 +278,14 @@ export const userQuizzAnswerHistories = pgTable('user_quizz_answer_histories', {
   quizzHistoryId: varchar('quizz_history_id', { length: 50 })
     .references(() => userQuizzHistories.id, { onDelete: 'cascade' })
     .notNull(),
-  questionId: varchar('question_id', { length: 50 })
-    .references(() => quizzQuestions.id, { onDelete: 'cascade' })
-    .notNull(),
-  answerId: varchar('answer_id', { length: 50 })
-    .references(() => quizzAnswerChoices.id, { onDelete: 'cascade' })
-    .notNull(),
+  questionId: varchar('question_id', { length: 50 }).references(
+    () => quizzQuestions.id,
+    { onDelete: 'cascade' },
+  ),
+  answerId: varchar('answer_id', { length: 50 }).references(
+    () => quizzAnswerChoices.id,
+    { onDelete: 'cascade' },
+  ),
 });
 
 export const userQuizzAnswerHistoriesRelations = relations(
