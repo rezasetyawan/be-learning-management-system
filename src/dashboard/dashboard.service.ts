@@ -7,7 +7,7 @@ import {
   getCurrentMonthDetails,
   getTimestampOfFirstDayOfYear,
   getTimestampOfLastDayOfYear,
-} from 'utils';
+} from '../../utils';
 
 @Injectable()
 export class DashboardService {
