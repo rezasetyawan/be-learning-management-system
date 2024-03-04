@@ -34,12 +34,8 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
   role: text('role').default('user'),
-  createdAt: varchar('created_at', { length: 50 })
-    .default(Date.now().toString())
-    .notNull(),
-  updatedAt: varchar('updated_at', { length: 50 })
-    .default(Date.now().toString())
-    .notNull(),
+  createdAt: varchar('created_at', { length: 50 }),
+  updatedAt: varchar('updated_at', { length: 50 }),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({

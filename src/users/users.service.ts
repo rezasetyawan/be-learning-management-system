@@ -23,11 +23,14 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     try {
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const timestamp = Date.now().toString();
 
       const user = {
         id: `user-${nanoid(20)}`,
         ...createUserDto,
         password: hashedPassword as unknown as string,
+        createdAt: timestamp,
+        updatedAt: timestamp,
       };
 
       await this.db.insert(schema.users).values(user);

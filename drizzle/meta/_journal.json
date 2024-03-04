@@ -365,6 +365,20 @@
       "when": 1709393119053,
       "tag": "0051_huge_echo",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "5",
+      "when": 1709525625539,
+      "tag": "0052_gray_ricochet",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "5",
+      "when": 1709526013885,
+      "tag": "0053_cute_cobalt_man",
+      "breakpoints": true
     }
   ]
 }
