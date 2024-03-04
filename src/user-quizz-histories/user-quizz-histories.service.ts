@@ -63,6 +63,10 @@ export class UserQuizzHistoriesService {
           eq(userQuizzHistories.moduleId, moduleId),
           eq(userQuizzHistories.userId, user.sub as string),
         ),
+      orderBy: (userQuizzHistories, { desc }) => [
+        desc(userQuizzHistories.createdAt),
+      ],
+      limit: 10,
     });
 
     console.log(data);
